@@ -8,7 +8,9 @@ import {
   GraduationCap,
   Settings,
   LogOut,
-  BookText 
+  BookText,
+  User,
+  Rss 
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -38,11 +40,13 @@ export const AdminSidebar = () => {
 
   const menuItems = [
     { icon: LayoutDashboard, label: "Tableau de bord", path: "/admin" },
+    { icon: User, label: "À propos", path: "/admin/about" },
     { icon: Briefcase, label: "Expériences", path: "/admin/experiences" },
     { icon: Cpu, label: "Compétences", path: "/admin/skills" },
     { icon: FolderKanban, label: "Projets", path: "/admin/projects" },
     { icon: GraduationCap, label: "Formation", path: "/admin/education" },
     { icon: BookText, label: "Blog", path: "/admin/blog" },
+    { icon: Rss, label: "Veille Techno", path: "/admin/tech-watch" },
     { icon: Settings, label: "Paramètres", path: "/admin/settings" },
   ];
 
