@@ -10,6 +10,7 @@ import Experience from "./pages/Experience";
 import Education from "./pages/Education";
 import Projects from "./pages/Projects";
 import Login from "./pages/auth/Login";
+import Dashboard from "./pages/admin/Dashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -27,6 +28,7 @@ const App = () => (
           <Route path="/formation" element={<Education />} />
           <Route path="/projets" element={<Projects />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/admin" element={<Dashboard />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
