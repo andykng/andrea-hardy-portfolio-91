@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 
 export const Hero = () => {
   return (
-    <section id="accueil" className="min-h-screen flex items-center justify-center relative pt-16">
+    <section className="min-h-[calc(100vh-4rem)] flex items-center justify-center relative">
       <div className="container mx-auto px-4 py-16 text-center">
         <div className="max-w-3xl mx-auto space-y-8 animate-fade-down">
           <div className="w-32 h-32 mx-auto rounded-full overflow-hidden border-4 border-primary">
@@ -21,7 +21,7 @@ export const Hero = () => {
             Administratrice Système & Réseau passionnée par la sécurité et la gestion de projets IT
           </p>
           <div className="flex gap-4 justify-center">
-            <Button size="lg">Mon CV</Button>
+            <Button size="lg">Télécharger mon CV</Button>
             <Button variant="outline" size="lg">Me Contacter</Button>
           </div>
         </div>
