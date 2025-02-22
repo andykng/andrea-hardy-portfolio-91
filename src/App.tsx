@@ -15,7 +15,6 @@ import Dashboard from "./pages/admin/Dashboard";
 import SkillsAdmin from "./pages/admin/skills/SkillsAdmin";
 import ExperiencesAdmin from "./pages/admin/experiences/ExperiencesAdmin";
 import BlogAdmin from "./pages/admin/blog/BlogAdmin";
-import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
@@ -37,7 +36,7 @@ const App = () => (
           <Route path="/admin/skills" element={<SkillsAdmin />} />
           <Route path="/admin/experiences" element={<ExperiencesAdmin />} />
           <Route path="/admin/blog" element={<BlogAdmin />} />
-          <Route path="*" element={<NotFound />} />
+          <Route path="*" element={<Dashboard />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
