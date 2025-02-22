@@ -7,7 +7,8 @@ import {
   FolderKanban,
   GraduationCap,
   Settings,
-  LogOut 
+  LogOut,
+  BookText 
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -41,6 +42,7 @@ export const AdminSidebar = () => {
     { icon: Cpu, label: "Compétences", path: "/admin/skills" },
     { icon: FolderKanban, label: "Projets", path: "/admin/projects" },
     { icon: GraduationCap, label: "Formation", path: "/admin/education" },
+    { icon: BookText, label: "Blog", path: "/admin/blog" },
     { icon: Settings, label: "Paramètres", path: "/admin/settings" },
   ];
 
@@ -97,4 +99,4 @@ export const AdminSidebar = () => {
       </div>
     </aside>
   );
-};
+}

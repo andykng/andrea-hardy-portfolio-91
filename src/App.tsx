@@ -9,9 +9,11 @@ import Skills from "./pages/Skills";
 import Experience from "./pages/Experience";
 import Education from "./pages/Education";
 import Projects from "./pages/Projects";
+import Blog from "./pages/Blog";
 import Login from "./pages/auth/Login";
 import Dashboard from "./pages/admin/Dashboard";
 import SkillsAdmin from "./pages/admin/skills/SkillsAdmin";
+import BlogAdmin from "./pages/admin/blog/BlogAdmin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,9 +30,11 @@ const App = () => (
           <Route path="/experience" element={<Experience />} />
           <Route path="/formation" element={<Education />} />
           <Route path="/projets" element={<Projects />} />
+          <Route path="/blog" element={<Blog />} />
           <Route path="/login" element={<Login />} />
           <Route path="/admin" element={<Dashboard />} />
           <Route path="/admin/skills" element={<SkillsAdmin />} />
+          <Route path="/admin/blog" element={<BlogAdmin />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
