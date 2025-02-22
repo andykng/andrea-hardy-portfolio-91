@@ -1,8 +1,8 @@
 
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "./use-auth";
-import { useToast } from "@/components/ui/use-toast";
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from './use-auth';
+import { useToast } from './use-toast';
 
 export const useRequireAuth = () => {
   const { isAuthenticated, loading } = useAuth();
@@ -13,10 +13,10 @@ export const useRequireAuth = () => {
     if (!loading && !isAuthenticated) {
       toast({
         title: "Accès refusé",
-        description: "Vous devez être connecté pour accéder à cette page",
+        description: "Vous devez être connecté pour accéder à cette page.",
         variant: "destructive",
       });
-      navigate("/login");
+      navigate('/auth');
     }
   }, [isAuthenticated, loading, navigate, toast]);
 

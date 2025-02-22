@@ -1,7 +1,6 @@
-
 import { AdminLayout } from "@/components/admin/AdminLayout";
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Plus, Pencil, Trash2 } from "lucide-react";
@@ -15,6 +14,7 @@ import {
 } from "@/components/ui/table";
 import { SkillDialog } from "@/components/admin/skills/SkillDialog";
 import { useToast } from "@/components/ui/use-toast";
+import { useRequireAuth } from "@/hooks/use-require-auth";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -38,12 +38,14 @@ interface Skill {
 
 export default function SkillsAdminPage() {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedSkill, setSelectedSkill] = useState<Skill | null>(null);
   const [mode, setMode] = useState<"create" | "edit">("create");
+  const { isAuthenticated, loading } = useRequireAuth();
 
-  const { data: skills, isLoading, refetch } = useQuery({
+  const { data: skills, isLoading } = useQuery({
     queryKey: ['admin-skills'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -54,8 +56,29 @@ export default function SkillsAdminPage() {
       
       if (error) throw error;
       return data as Skill[];
-    }
+    },
+    enabled: isAuthenticated,
   });
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const channel = supabase
+      .channel('skills-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'skills' },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['admin-skills'] });
+          queryClient.invalidateQueries({ queryKey: ['skills'] }); // Actualise aussi la vue publique
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient, isAuthenticated]);
 
   const handleCreate = async (formData: any) => {
     const { error } = await supabase
@@ -73,7 +96,6 @@ export default function SkillsAdminPage() {
         title: "Succès",
         description: "Compétence créée avec succès",
       });
-      refetch();
     }
   };
 
@@ -94,7 +116,6 @@ export default function SkillsAdminPage() {
         title: "Succès",
         description: "Compétence modifiée avec succès",
       });
-      refetch();
     }
   };
 
@@ -115,10 +136,13 @@ export default function SkillsAdminPage() {
         title: "Succès",
         description: "Compétence supprimée avec succès",
       });
-      refetch();
     }
     setDeleteDialogOpen(false);
   };
+
+  if (loading || !isAuthenticated) {
+    return null;
+  }
 
   const openCreateDialog = () => {
     setMode("create");

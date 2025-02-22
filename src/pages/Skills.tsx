@@ -5,54 +5,46 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Layout } from "@/components/Layout";
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-
-const skills = [
-  {
-    title: "Systèmes & Réseaux",
-    icon: Server,
-    items: [
-      { name: "Windows Server", level: 85 },
-      { name: "Linux", level: 80 },
-      { name: "Virtualisation", level: 75 },
-      { name: "VLAN", level: 70 },
-      { name: "DHCP/DNS", level: 85 },
-    ],
-  },
-  {
-    title: "Sécurité",
-    icon: Shield,
-    items: [
-      { name: "Pare-feu", level: 80 },
-      { name: "SSL/TLS", level: 75 },
-      { name: "GPG", level: 70 },
-      { name: "IAM", level: 65 },
-    ],
-  },
-  {
-    title: "Virtualisation & Cloud",
-    icon: Cloud,
-    items: [
-      { name: "Docker", level: 85 },
-      { name: "Proxmox", level: 75 },
-      { name: "AWS", level: 70 },
-      { name: "Azure", level: 65 },
-    ],
-  },
-  {
-    title: "Support & Projets",
-    icon: Code,
-    items: [
-      { name: "Diagnostic d'incidents", level: 90 },
-      { name: "Documentation", level: 85 },
-      { name: "Gestion de projets IT", level: 80 },
-    ],
-  },
-];
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 export default function SkillsPage() {
+  const queryClient = useQueryClient();
+
+  const { data: skills } = useQuery({
+    queryKey: ['skills'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('skills')
+        .select('*')
+        .order('category')
+        .order('name');
+      
+      if (error) throw error;
+      return data;
+    }
+  });
+
+  // Configuration de la synchronisation en temps réel
+  useEffect(() => {
+    const channel = supabase
+      .channel('public-skills-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'skills' },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['skills'] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
+
+  // Suivi des vues de page
   useEffect(() => {
     const trackPageView = async () => {
-      // D'abord, on récupère le nombre de vues actuel
       const { data: currentPage } = await supabase
         .from('pages')
         .select('views')
@@ -61,8 +53,7 @@ export default function SkillsPage() {
 
       const currentViews = currentPage?.views || 0;
 
-      // Ensuite, on met à jour avec le nouveau nombre de vues
-      const { error } = await supabase
+      await supabase
         .from('pages')
         .upsert({ 
           slug: 'competences',
@@ -72,47 +63,54 @@ export default function SkillsPage() {
         }, {
           onConflict: 'slug'
         });
-
-      if (error) {
-        console.error('Erreur lors du suivi de la page :', error);
-      }
     };
 
     trackPageView();
   }, []);
 
+  const skillsByCategory = skills?.reduce((acc, skill) => {
+    if (!acc[skill.category]) {
+      acc[skill.category] = [];
+    }
+    acc[skill.category].push(skill);
+    return acc;
+  }, {} as Record<string, typeof skills>);
+
   return (
     <Layout>
       <div className="container mx-auto px-4 py-12">
-        <h1 className="text-4xl font-bold text-center mb-12">Mes Compétences</h1>
+        <h1 className="text-4xl font-bold text-center mb-12 text-primary">Mes Compétences</h1>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {skills.map((skill, index) => (
+          {Object.entries(skillsByCategory || {}).map(([category, skills], index) => (
             <motion.div
-              key={skill.title}
+              key={category}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.2 }}
             >
-              <Card className="h-full">
+              <Card className="h-full shadow-lg hover:shadow-xl transition-shadow duration-300">
                 <CardHeader>
                   <div className="flex items-center gap-2">
-                    <skill.icon className="h-6 w-6 text-primary" />
-                    <CardTitle>{skill.title}</CardTitle>
+                    {category === 'frontend' && <Code className="h-6 w-6 text-primary" />}
+                    {category === 'backend' && <Server className="h-6 w-6 text-primary" />}
+                    {category === 'devops' && <Cloud className="h-6 w-6 text-primary" />}
+                    {category === 'security' && <Shield className="h-6 w-6 text-primary" />}
+                    <CardTitle className="capitalize">{category}</CardTitle>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {skill.items.map((item, itemIndex) => (
-                    <div key={item.name} className="space-y-2">
+                  {skills?.map((skill) => (
+                    <div key={skill.id} className="space-y-2">
                       <div className="flex justify-between text-sm">
-                        <span>{item.name}</span>
-                        <span>{item.level}%</span>
+                        <span>{skill.name}</span>
+                        <span>{skill.level}%</span>
                       </div>
                       <div className="h-2 bg-muted rounded-full overflow-hidden">
                         <motion.div
                           className="h-full bg-primary"
                           initial={{ width: 0 }}
-                          animate={{ width: `${item.level}%` }}
-                          transition={{ delay: index * 0.2 + itemIndex * 0.1, duration: 1 }}
+                          animate={{ width: `${skill.level}%` }}
+                          transition={{ duration: 1 }}
                         />
                       </div>
                     </div>
