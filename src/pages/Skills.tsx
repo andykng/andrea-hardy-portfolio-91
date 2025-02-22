@@ -2,6 +2,8 @@ import { motion } from "framer-motion";
 import { Code, Server, Shield, Cloud } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Layout } from "@/components/Layout";
+import { useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 const skills = [
   {
@@ -47,6 +49,28 @@ const skills = [
 ];
 
 export default function SkillsPage() {
+  useEffect(() => {
+    const trackPageView = async () => {
+      const { error } = await supabase
+        .from('pages')
+        .upsert({ 
+          slug: 'competences',
+          title: 'Compétences',
+          content: 'Page des compétences',
+          views: 1 
+        }, {
+          onConflict: 'slug',
+          count: 'exact'
+        });
+
+      if (error) {
+        console.error('Erreur lors du suivi de la page :', error);
+      }
+    };
+
+    trackPageView();
+  }, []);
+
   return (
     <Layout>
       <div className="container mx-auto px-4 py-12">
