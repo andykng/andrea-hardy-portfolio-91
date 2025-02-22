@@ -26,11 +26,24 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
+interface Project {
+  id: string;
+  title: string;
+  description: string;
+  image_url: string;
+  github_url: string;
+  demo_url: string;
+  technologies: string[];
+  animation_type?: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export default function ProjectsAdminPage() {
   const { toast } = useToast();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [selectedProject, setSelectedProject] = useState<any>(null);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [mode, setMode] = useState<"create" | "edit">("create");
 
   const { data: projects, isLoading, refetch } = useQuery({
@@ -42,7 +55,7 @@ export default function ProjectsAdminPage() {
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return data;
+      return data as Project[];
     }
   });
 

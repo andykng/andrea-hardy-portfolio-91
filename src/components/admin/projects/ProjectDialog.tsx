@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -11,28 +10,23 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
 import { ImagePlus } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+
+interface ProjectFormData {
+  title: string;
+  description: string;
+  image_url: string;
+  github_url?: string;
+  demo_url?: string;
+  technologies: string[];
+  animation_type?: string;
+}
 
 interface ProjectDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: {
-    title: string;
-    description: string;
-    image_url: string;
-    github_url?: string;
-    demo_url?: string;
-    technologies: string[];
-    animation_type?: string;
-  }) => Promise<void>;
-  defaultValues?: {
-    title: string;
-    description: string;
-    image_url: string;
-    github_url?: string;
-    demo_url?: string;
-    technologies: string[];
-    animation_type?: string;
-  };
+  onSubmit: (data: ProjectFormData) => Promise<void>;
+  defaultValues?: ProjectFormData;
   mode: "create" | "edit";
 }
 
