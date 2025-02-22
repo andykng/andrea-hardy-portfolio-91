@@ -1,7 +1,7 @@
-
 import { motion } from "framer-motion";
 import { Code, Server, Shield, Cloud } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Layout } from "@/components/Layout";
 
 const skills = [
   {
@@ -48,7 +48,7 @@ const skills = [
 
 export default function SkillsPage() {
   return (
-    <div className="min-h-screen bg-background pt-20">
+    <Layout>
       <div className="container mx-auto px-4 py-12">
         <h1 className="text-4xl font-bold text-center mb-12">Mes Compétences</h1>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -89,6 +89,6 @@ export default function SkillsPage() {
           ))}
         </div>
       </div>
-    </div>
+    </Layout>
   );
 }

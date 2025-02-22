@@ -2,6 +2,7 @@
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Layout } from "@/components/Layout";
 
 const projects = [
   {
@@ -20,7 +21,7 @@ const projects = [
 
 export default function ProjectsPage() {
   return (
-    <div className="min-h-screen bg-background pt-20">
+    <Layout>
       <div className="container mx-auto px-4 py-12">
         <h1 className="text-4xl font-bold text-center mb-12">Mes Projets</h1>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
@@ -61,6 +62,6 @@ export default function ProjectsPage() {
           ))}
         </div>
       </div>
-    </div>
+    </Layout>
   );
 }

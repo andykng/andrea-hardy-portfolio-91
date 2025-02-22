@@ -1,6 +1,6 @@
-
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Layout } from "@/components/Layout";
 
 const experiences = [
   {
@@ -28,7 +28,7 @@ const experiences = [
 
 export default function ExperiencePage() {
   return (
-    <div className="min-h-screen bg-background pt-20">
+    <Layout>
       <div className="container mx-auto px-4 py-12">
         <h1 className="text-4xl font-bold text-center mb-12">Mon Expérience</h1>
         <div className="max-w-3xl mx-auto space-y-6">
@@ -57,6 +57,6 @@ export default function ExperiencePage() {
           ))}
         </div>
       </div>
-    </div>
+    </Layout>
   );
 }

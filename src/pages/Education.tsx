@@ -1,7 +1,7 @@
-
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Award } from "lucide-react";
+import { Layout } from "@/components/Layout";
 
 const education = [
   {
@@ -20,7 +20,7 @@ const certifications = ["AWS Cloud Computing", "ANSSI SecNum Académie", "PIX"];
 
 export default function EducationPage() {
   return (
-    <div className="min-h-screen bg-background pt-20">
+    <Layout>
       <div className="container mx-auto px-4 py-12">
         <h1 className="text-4xl font-bold text-center mb-12">Formation</h1>
         <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
@@ -71,6 +71,6 @@ export default function EducationPage() {
           </motion.div>
         </div>
       </div>
-    </div>
+    </Layout>
   );
 }
