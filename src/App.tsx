@@ -11,6 +11,7 @@ import Education from "./pages/Education";
 import Projects from "./pages/Projects";
 import Login from "./pages/auth/Login";
 import Dashboard from "./pages/admin/Dashboard";
+import SkillsAdmin from "./pages/admin/skills/SkillsAdmin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,6 +30,7 @@ const App = () => (
           <Route path="/projets" element={<Projects />} />
           <Route path="/login" element={<Login />} />
           <Route path="/admin" element={<Dashboard />} />
+          <Route path="/admin/skills" element={<SkillsAdmin />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
