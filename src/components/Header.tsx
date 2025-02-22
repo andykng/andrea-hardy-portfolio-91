@@ -18,6 +18,17 @@ export const Header = () => {
           
           <div className="flex items-center gap-6">
             <NavLink
+              to="/a-propos"
+              className={({ isActive }) =>
+                cn(
+                  "text-sm transition-colors hover:text-primary",
+                  isActive ? "text-primary" : "text-gray-600"
+                )
+              }
+            >
+              À propos
+            </NavLink>
+            <NavLink
               to="/competences"
               className={({ isActive }) =>
                 cn(
@@ -60,6 +71,17 @@ export const Header = () => {
               }
             >
               Projets
+            </NavLink>
+            <NavLink
+              to="/veille-techno"
+              className={({ isActive }) =>
+                cn(
+                  "text-sm transition-colors hover:text-primary",
+                  isActive ? "text-primary" : "text-gray-600"
+                )
+              }
+            >
+              Veille Techno
             </NavLink>
             <NavLink
               to="/blog"
