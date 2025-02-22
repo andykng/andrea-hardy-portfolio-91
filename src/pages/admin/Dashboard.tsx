@@ -1,4 +1,3 @@
-
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
@@ -9,122 +8,82 @@ import {
   ArrowUp,
   ArrowDown,
   Users,
-  Eye
+  Eye,
+  BookText
 } from "lucide-react";
 
 export default function DashboardPage() {
-  const stats = [
-    {
-      title: "Total Expériences",
-      value: "8",
-      change: "+2",
-      trend: "up",
-      icon: Briefcase,
-    },
-    {
-      title: "Total Compétences",
-      value: "24",
-      change: "+5",
-      trend: "up",
-      icon: Cpu,
-    },
-    {
-      title: "Total Projets",
-      value: "12",
-      change: "+3",
-      trend: "up",
-      icon: FolderKanban,
-    },
-    {
-      title: "Total Formations",
-      value: "4",
-      change: "0",
-      trend: "neutral",
-      icon: GraduationCap,
-    },
-  ];
-
-  const activities = [
-    {
-      type: "update",
-      item: "Compétence React",
-      date: "Il y a 2 heures",
-    },
-    {
-      type: "create",
-      item: "Projet Portfolio",
-      date: "Il y a 3 heures",
-    },
-    {
-      type: "delete",
-      item: "Ancienne expérience",
-      date: "Il y a 1 jour",
-    },
-  ];
-
-  const visitors = [
-    { page: "Accueil", views: 1234 },
-    { page: "Projets", views: 856 },
-    { page: "Compétences", views: 642 },
-    { page: "Expériences", views: 435 },
-  ];
-
   return (
     <AdminLayout>
       <div className="space-y-8">
         <div>
-          <h1 className="text-3xl font-bold mb-6">Tableau de bord</h1>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {stats.map((stat) => (
-              <Card key={stat.title}>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <stat.icon className="w-8 h-8 text-primary" />
-                    <div className={`flex items-center gap-1 ${
-                      stat.trend === "up" ? "text-green-600" : "text-gray-600"
-                    }`}>
-                      {stat.change}
-                      {stat.trend === "up" && <ArrowUp className="w-4 h-4" />}
-                      {stat.trend === "down" && <ArrowDown className="w-4 h-4" />}
-                    </div>
-                  </div>
-                  <div className="mt-4">
-                    <p className="text-2xl font-bold">{stat.value}</p>
-                    <p className="text-sm text-gray-500">{stat.title}</p>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          <h1 className="text-3xl font-bold mb-2">Tableau de bord</h1>
+          <p className="text-gray-500">Gérez votre contenu et surveillez les statistiques</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <Card className="hover:shadow-lg transition-shadow">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Users className="w-5 h-5" />
-                Activité récente
+                <Briefcase className="w-5 h-5 text-primary" />
+                Expériences
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {activities.map((activity, i) => (
-                  <div key={i} className="flex items-center gap-4">
-                    <div className={`w-2 h-2 rounded-full ${
-                      activity.type === "create" ? "bg-green-500" :
-                      activity.type === "update" ? "bg-blue-500" :
-                      "bg-red-500"
-                    }`} />
-                    <div>
-                      <p className="font-medium">{activity.item}</p>
-                      <p className="text-sm text-gray-500">{activity.date}</p>
-                    </div>
-                  </div>
-                ))}
+              <div className="space-y-2">
+                <p className="text-2xl font-bold">8</p>
+                <p className="text-sm text-gray-500">Expériences professionnelles</p>
               </div>
             </CardContent>
           </Card>
 
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Cpu className="w-5 h-5 text-primary" />
+                Compétences
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <p className="text-2xl font-bold">24</p>
+                <p className="text-sm text-gray-500">Technologies maîtrisées</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BookText className="w-5 h-5 text-primary" />
+                Blog
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <p className="text-2xl font-bold">6</p>
+                <p className="text-sm text-gray-500">Articles publiés</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FolderKanban className="w-5 h-5 text-primary" />
+                Projets
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <p className="text-2xl font-bold">12</p>
+                <p className="text-sm text-gray-500">Projets réalisés</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -134,10 +93,55 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {visitors.map((page, i) => (
+                {[
+                  { page: "À propos", views: 1234 },
+                  { page: "Blog", views: 856 },
+                  { page: "Compétences", views: 642 },
+                  { page: "Projets", views: 435 },
+                ].map((page, i) => (
                   <div key={i} className="flex items-center justify-between">
                     <span className="text-gray-600">{page.page}</span>
                     <span className="font-medium">{page.views} vues</span>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="w-5 h-5" />
+                Activité récente
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {[
+                  {
+                    action: "Publication",
+                    item: "Article: Les tendances DevOps 2024",
+                    time: "Il y a 2h",
+                  },
+                  {
+                    action: "Mise à jour",
+                    item: "Page À propos",
+                    time: "Il y a 3h",
+                  },
+                  {
+                    action: "Création",
+                    item: "Nouveau projet: Portfolio v2",
+                    time: "Il y a 5h",
+                  },
+                ].map((activity, i) => (
+                  <div key={i} className="flex items-center gap-4">
+                    <div className="w-2 h-2 rounded-full bg-primary" />
+                    <div>
+                      <p className="font-medium">
+                        {activity.action}: {activity.item}
+                      </p>
+                      <p className="text-sm text-gray-500">{activity.time}</p>
+                    </div>
                   </div>
                 ))}
               </div>
