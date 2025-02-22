@@ -3,59 +3,108 @@ import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Layout } from "@/components/Layout";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
-const projects = [
-  {
-    title: "Projet 1",
-    description: "Description du projet...",
-    technologies: ["React", "TypeScript", "Tailwind"],
-    image: "https://images.unsplash.com/photo-1556761175-4b46a572b786",
-  },
-  {
-    title: "Projet 2",
-    description: "Description du projet...",
-    technologies: ["Python", "Django", "PostgreSQL"],
-    image: "https://images.unsplash.com/photo-1556761175-5973dc0f32e7",
-  },
-];
+interface Project {
+  id: string;
+  title: string;
+  description: string;
+  image_url: string;
+  technologies: string[];
+  github_url?: string;
+  demo_url?: string;
+  animation_type?: string;
+}
 
 export default function ProjectsPage() {
+  const { data: projects } = useQuery({
+    queryKey: ['projects'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('projects')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data as Project[];
+    }
+  });
+
   return (
     <Layout>
-      <div className="container mx-auto px-4 py-12">
-        <h1 className="text-4xl font-bold text-center mb-12">Mes Projets</h1>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-          {projects.map((project, index) => (
+      <div className="space-y-8">
+        <motion.div 
+          className="text-center space-y-4"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary via-purple-500 to-pink-500 bg-clip-text text-transparent">
+            Mes Projets
+          </h1>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            Découvrez une sélection de mes projets les plus récents, mettant en avant
+            mes compétences en développement web et en conception d'interfaces.
+          </p>
+        </motion.div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {projects?.map((project, index) => (
             <motion.div
-              key={project.title}
+              key={project.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.2 }}
+              transition={{ delay: index * 0.1 }}
             >
-              <Card className="overflow-hidden">
-                <div className="h-48 overflow-hidden">
-                  <img
-                    src={project.image}
-                    alt={project.title}
-                    className="w-full h-full object-cover transition-transform hover:scale-105"
-                  />
+              <Card className="group overflow-hidden border-primary/10 hover:border-primary/20 transition-colors">
+                <div className="relative aspect-video overflow-hidden">
+                  {project.image_url ? (
+                    <img
+                      src={project.image_url}
+                      alt={project.title}
+                      className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-purple-500/5" />
+                  )}
                 </div>
                 <CardHeader>
-                  <CardTitle>{project.title}</CardTitle>
+                  <CardTitle className="line-clamp-1">{project.title}</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <p className="text-gray-600 mb-4">{project.description}</p>
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {project.technologies.map((tech) => (
+                <CardContent className="space-y-4">
+                  <p className="text-muted-foreground line-clamp-2">
+                    {project.description}
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {project.technologies.map((tech, techIndex) => (
                       <span
-                        key={tech}
-                        className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm"
+                        key={techIndex}
+                        className="px-2.5 py-1 text-xs font-medium rounded-full bg-gradient-to-r from-primary/10 to-purple-500/10 text-primary border border-primary/20"
                       >
                         {tech}
                       </span>
                     ))}
                   </div>
-                  <Button className="w-full">Voir le projet</Button>
+                  <div className="flex gap-3 pt-4">
+                    {project.demo_url && (
+                      <Button
+                        className="flex-1 bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90"
+                        onClick={() => window.open(project.demo_url, '_blank')}
+                      >
+                        Voir la démo
+                      </Button>
+                    )}
+                    {project.github_url && (
+                      <Button
+                        variant="outline"
+                        className="flex-1 border-primary/20 hover:bg-primary/10"
+                        onClick={() => window.open(project.github_url, '_blank')}
+                      >
+                        Code source
+                      </Button>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             </motion.div>
