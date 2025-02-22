@@ -61,6 +61,17 @@ export const Header = () => {
             >
               Projets
             </NavLink>
+            <NavLink
+              to="/blog"
+              className={({ isActive }) =>
+                cn(
+                  "text-sm transition-colors hover:text-primary",
+                  isActive ? "text-primary" : "text-gray-600"
+                )
+              }
+            >
+              Blog
+            </NavLink>
             <NavLink to="/login">
               <Button variant="ghost" size="sm" className="gap-2">
                 <LogIn className="w-4 h-4" />
