@@ -12,6 +12,7 @@ import Education from "./pages/Education";
 import Projects from "./pages/Projects";
 import Blog from "./pages/Blog";
 import TechWatch from "./pages/TechWatch";
+import Contact from "./pages/Contact";
 import Login from "./pages/auth/Login";
 import Dashboard from "./pages/admin/Dashboard";
 import SkillsAdmin from "./pages/admin/skills/SkillsAdmin";
@@ -37,6 +38,7 @@ const App = () => (
           <Route path="/projets" element={<Projects />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/veille-techno" element={<TechWatch />} />
+          <Route path="/contact" element={<Contact />} />
           <Route path="/login" element={<Login />} />
           <Route path="/admin" element={<Dashboard />} />
           <Route path="/admin/skills" element={<SkillsAdmin />} />

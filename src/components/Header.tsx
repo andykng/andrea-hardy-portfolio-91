@@ -8,7 +8,8 @@ import {
   GraduationCap, 
   FolderKanban,
   Rss,
-  BookOpen
+  BookOpen,
+  Mail
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { cn } from "@/lib/utils";
@@ -112,6 +113,18 @@ export const Header = () => {
             >
               <BookOpen className="w-4 h-4" />
               Blog
+            </NavLink>
+            <NavLink
+              to="/contact"
+              className={({ isActive }) =>
+                cn(
+                  "text-sm transition-colors hover:text-primary flex items-center gap-2",
+                  isActive ? "text-primary font-medium" : "text-gray-600"
+                )
+              }
+            >
+              <Mail className="w-4 h-4" />
+              Contact
             </NavLink>
             <NavLink to="/login">
               <Button 
