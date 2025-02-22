@@ -33,14 +33,14 @@ export default function ProjectsPage() {
 
   return (
     <Layout>
-      <div className="space-y-8">
+      <div className="space-y-12">
         <motion.div 
           className="text-center space-y-4"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary via-purple-500 to-pink-500 bg-clip-text text-transparent">
+          <h1 className="text-4xl md:text-5xl font-bold text-primary">
             Mes Projets
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
@@ -49,7 +49,7 @@ export default function ProjectsPage() {
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {projects?.map((project, index) => (
             <motion.div
               key={project.id}
@@ -57,22 +57,22 @@ export default function ProjectsPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
             >
-              <Card className="group overflow-hidden border-primary/10 hover:border-primary/20 transition-colors">
-                <div className="relative aspect-video overflow-hidden">
+              <Card className="group overflow-hidden border-none shadow-lg hover:shadow-xl transition-shadow duration-300">
+                <div className="relative aspect-[4/3] overflow-hidden">
                   {project.image_url ? (
                     <img
                       src={project.image_url}
                       alt={project.title}
-                      className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
+                      className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500"
                     />
                   ) : (
-                    <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-purple-500/5" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5" />
                   )}
                 </div>
-                <CardHeader>
-                  <CardTitle className="line-clamp-1">{project.title}</CardTitle>
+                <CardHeader className="bg-white">
+                  <CardTitle className="text-xl font-semibold tracking-tight">{project.title}</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="bg-white space-y-4">
                   <p className="text-muted-foreground line-clamp-2">
                     {project.description}
                   </p>
@@ -80,7 +80,7 @@ export default function ProjectsPage() {
                     {project.technologies.map((tech, techIndex) => (
                       <span
                         key={techIndex}
-                        className="px-2.5 py-1 text-xs font-medium rounded-full bg-gradient-to-r from-primary/10 to-purple-500/10 text-primary border border-primary/20"
+                        className="px-3 py-1 text-xs font-medium rounded-full text-primary bg-primary/5"
                       >
                         {tech}
                       </span>
@@ -89,7 +89,7 @@ export default function ProjectsPage() {
                   <div className="flex gap-3 pt-4">
                     {project.demo_url && (
                       <Button
-                        className="flex-1 bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90"
+                        className="flex-1 bg-primary hover:bg-primary/90 text-white"
                         onClick={() => window.open(project.demo_url, '_blank')}
                       >
                         Voir la démo
@@ -98,7 +98,7 @@ export default function ProjectsPage() {
                     {project.github_url && (
                       <Button
                         variant="outline"
-                        className="flex-1 border-primary/20 hover:bg-primary/10"
+                        className="flex-1 border-primary/20 hover:bg-primary/5 hover:border-primary/30"
                         onClick={() => window.open(project.github_url, '_blank')}
                       >
                         Code source
