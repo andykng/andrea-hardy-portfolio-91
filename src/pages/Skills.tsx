@@ -1,3 +1,4 @@
+
 import { motion } from "framer-motion";
 import { Code, Server, Shield, Cloud } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -51,16 +52,25 @@ const skills = [
 export default function SkillsPage() {
   useEffect(() => {
     const trackPageView = async () => {
+      // D'abord, on récupère le nombre de vues actuel
+      const { data: currentPage } = await supabase
+        .from('pages')
+        .select('views')
+        .eq('slug', 'competences')
+        .single();
+
+      const currentViews = currentPage?.views || 0;
+
+      // Ensuite, on met à jour avec le nouveau nombre de vues
       const { error } = await supabase
         .from('pages')
         .upsert({ 
           slug: 'competences',
           title: 'Compétences',
           content: 'Page des compétences',
-          views: 1 
+          views: currentViews + 1 
         }, {
-          onConflict: 'slug',
-          count: 'exact'
+          onConflict: 'slug'
         });
 
       if (error) {

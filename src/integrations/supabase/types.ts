@@ -103,6 +103,7 @@ export type Database = {
           slug: string
           title: string
           updated_at: string
+          views: number | null
         }
         Insert: {
           content: string
@@ -113,6 +114,7 @@ export type Database = {
           slug: string
           title: string
           updated_at?: string
+          views?: number | null
         }
         Update: {
           content?: string
@@ -123,6 +125,7 @@ export type Database = {
           slug?: string
           title?: string
           updated_at?: string
+          views?: number | null
         }
         Relationships: []
       }
