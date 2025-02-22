@@ -143,17 +143,22 @@ export default function ProjectsAdminPage() {
     <AdminLayout>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold">Gestion des projets</h1>
-          <Button onClick={openCreateDialog}>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary via-purple-500 to-pink-500 bg-clip-text text-transparent">
+            Gestion des projets
+          </h1>
+          <Button 
+            onClick={openCreateDialog}
+            className="bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 transition-all"
+          >
             <Plus className="w-4 h-4 mr-2" />
             Ajouter un projet
           </Button>
         </div>
 
-        <div className="rounded-md border">
+        <div className="rounded-lg border bg-card shadow-sm overflow-hidden">
           <Table>
             <TableHeader>
-              <TableRow>
+              <TableRow className="bg-muted/50">
                 <TableHead>Image</TableHead>
                 <TableHead>Titre</TableHead>
                 <TableHead>Technologies</TableHead>
@@ -163,35 +168,47 @@ export default function ProjectsAdminPage() {
             </TableHeader>
             <TableBody>
               {projects?.map((project) => (
-                <TableRow key={project.id}>
+                <TableRow key={project.id} className="hover:bg-muted/30">
                   <TableCell>
                     {project.image_url && (
-                      <img
-                        src={project.image_url}
-                        alt={project.title}
-                        className="w-12 h-12 object-cover rounded"
-                      />
+                      <div className="relative w-16 h-16 rounded-lg overflow-hidden">
+                        <img
+                          src={project.image_url}
+                          alt={project.title}
+                          className="object-cover w-full h-full transition-transform hover:scale-110"
+                        />
+                      </div>
                     )}
                   </TableCell>
-                  <TableCell className="font-medium">{project.title}</TableCell>
                   <TableCell>
-                    <div className="flex flex-wrap gap-1">
+                    <div className="font-medium">{project.title}</div>
+                    <div className="text-sm text-muted-foreground line-clamp-1">
+                      {project.description}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex flex-wrap gap-1.5">
                       {project.technologies.map((tech: string, index: number) => (
                         <span
                           key={index}
-                          className="px-2 py-1 text-xs rounded-full bg-primary/10 text-primary"
+                          className="px-2.5 py-1 text-xs font-medium rounded-full bg-gradient-to-r from-primary/10 to-purple-500/10 text-primary border border-primary/20"
                         >
                           {tech}
                         </span>
                       ))}
                     </div>
                   </TableCell>
-                  <TableCell>{project.animation_type}</TableCell>
+                  <TableCell>
+                    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+                      {project.animation_type}
+                    </span>
+                  </TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-2">
                       <Button
                         variant="ghost"
                         size="sm"
+                        className="hover:bg-primary/10 hover:text-primary"
                         onClick={() => window.open(`/projects/${project.id}`, '_blank')}
                       >
                         <Eye className="w-4 h-4" />
@@ -199,6 +216,7 @@ export default function ProjectsAdminPage() {
                       <Button
                         variant="ghost"
                         size="sm"
+                        className="hover:bg-purple-500/10 hover:text-purple-500"
                         onClick={() => openEditDialog(project)}
                       >
                         <Pencil className="w-4 h-4" />
@@ -206,7 +224,7 @@ export default function ProjectsAdminPage() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="text-red-600"
+                        className="hover:bg-red-500/10 hover:text-red-500"
                         onClick={() => openDeleteDialog(project)}
                       >
                         <Trash2 className="w-4 h-4" />
@@ -228,18 +246,20 @@ export default function ProjectsAdminPage() {
         />
 
         <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-          <AlertDialogContent>
+          <AlertDialogContent className="bg-card">
             <AlertDialogHeader>
               <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
-              <AlertDialogDescription>
+              <AlertDialogDescription className="text-muted-foreground">
                 Cette action est irréversible. Cela supprimera définitivement le projet
                 et son contenu.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Annuler</AlertDialogCancel>
+              <AlertDialogCancel className="bg-muted hover:bg-muted/90">
+                Annuler
+              </AlertDialogCancel>
               <AlertDialogAction
-                className="bg-red-600 hover:bg-red-700"
+                className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700"
                 onClick={() => handleDelete(selectedProject?.id)}
               >
                 Supprimer
