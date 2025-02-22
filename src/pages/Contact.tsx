@@ -25,7 +25,13 @@ const Contact = () => {
     setIsSubmitting(true);
 
     try {
-      const formData = Object.fromEntries(new FormData(e.currentTarget)) as ContactFormData;
+      const formElement = e.currentTarget;
+      const formData = {
+        name: formElement.name.value,
+        email: formElement.email.value,
+        subject: formElement.subject.value,
+        message: formElement.message.value,
+      } as ContactFormData;
 
       const { error } = await supabase.functions.invoke('send-contact-email', {
         body: formData,
@@ -38,7 +44,7 @@ const Contact = () => {
         description: "Vous recevrez bientôt un email de confirmation.",
       });
 
-      (e.target as HTMLFormElement).reset();
+      formElement.reset();
     } catch (error: any) {
       console.error('Error sending message:', error);
       toast({
