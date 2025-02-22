@@ -26,12 +26,12 @@ const Contact = () => {
 
     try {
       const formElement = e.currentTarget;
-      const formData = {
-        name: formElement.name.value,
-        email: formElement.email.value,
-        subject: formElement.subject.value,
-        message: formElement.message.value,
-      } as ContactFormData;
+      const formData: ContactFormData = {
+        name: (formElement.querySelector('[name="name"]') as HTMLInputElement).value,
+        email: (formElement.querySelector('[name="email"]') as HTMLInputElement).value,
+        subject: (formElement.querySelector('[name="subject"]') as HTMLInputElement).value,
+        message: (formElement.querySelector('[name="message"]') as HTMLTextAreaElement).value,
+      };
 
       const { error } = await supabase.functions.invoke('send-contact-email', {
         body: formData,
