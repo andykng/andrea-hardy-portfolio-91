@@ -1,3 +1,4 @@
+
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -25,6 +26,20 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useRealtimeSubscription } from "@/hooks/use-realtime-subscription";
 import { useRequireAuth } from "@/hooks/use-require-auth";
+import { BlogDialog } from "@/components/admin/blog/BlogDialog";
+import { useState } from "react";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface BlogPost {
   id: string;
@@ -34,11 +49,18 @@ interface BlogPost {
   published_at: string | null;
   read_time: number;
   views: number;
+  content: string;
+  excerpt?: string;
+  image_url?: string;
 }
 
 export default function BlogAdminPage() {
   const { toast } = useToast();
   const { isAuthenticated } = useRequireAuth();
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedPost, setSelectedPost] = useState<BlogPost | null>(null);
+  const [mode, setMode] = useState<"create" | "edit">("create");
 
   useRealtimeSubscription({
     table: 'blog_posts',
@@ -46,7 +68,7 @@ export default function BlogAdminPage() {
     enabled: isAuthenticated
   });
 
-  const { data: posts, refetch } = useQuery({
+  const { data: posts = [], refetch } = useQuery({
     queryKey: ['admin-blog-posts'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -59,6 +81,61 @@ export default function BlogAdminPage() {
     },
     enabled: isAuthenticated
   });
+
+  const handleCreate = async (formData: Partial<BlogPost>) => {
+    const { error } = await supabase
+      .from('blog_posts')
+      .insert([{
+        ...formData,
+        published_at: formData.status === 'published' ? new Date().toISOString() : null
+      }]);
+
+    if (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de créer l'article",
+        variant: "destructive",
+      });
+      throw error;
+    }
+
+    toast({
+      title: "Succès",
+      description: "Article créé avec succès",
+    });
+    refetch();
+  };
+
+  const handleUpdate = async (formData: Partial<BlogPost>) => {
+    if (!selectedPost) return;
+
+    const updates = {
+      ...formData,
+      published_at: formData.status === 'published' && !selectedPost.published_at 
+        ? new Date().toISOString() 
+        : selectedPost.published_at
+    };
+
+    const { error } = await supabase
+      .from('blog_posts')
+      .update(updates)
+      .eq('id', selectedPost.id);
+
+    if (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de modifier l'article",
+        variant: "destructive",
+      });
+      throw error;
+    }
+
+    toast({
+      title: "Succès",
+      description: "Article modifié avec succès",
+    });
+    refetch();
+  };
 
   const handleDelete = async (id: string) => {
     const { error } = await supabase
@@ -79,14 +156,36 @@ export default function BlogAdminPage() {
       });
       refetch();
     }
+    setDeleteDialogOpen(false);
   };
+
+  const openCreateDialog = () => {
+    setMode("create");
+    setSelectedPost(null);
+    setDialogOpen(true);
+  };
+
+  const openEditDialog = (post: BlogPost) => {
+    setMode("edit");
+    setSelectedPost(post);
+    setDialogOpen(true);
+  };
+
+  const openDeleteDialog = (post: BlogPost) => {
+    setSelectedPost(post);
+    setDeleteDialogOpen(true);
+  };
+
+  if (!isAuthenticated) {
+    return null;
+  }
 
   return (
     <AdminLayout>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold">Gestion du Blog</h1>
-          <Button size="lg">
+          <Button size="lg" onClick={openCreateDialog}>
             <Plus className="w-4 h-4 mr-2" />
             Nouveau Article
           </Button>
@@ -130,7 +229,7 @@ export default function BlogAdminPage() {
             </CardHeader>
             <CardContent>
               <p className="text-3xl font-bold">
-                {posts.reduce((acc, post) => acc + post.views, 0)}
+                {posts.reduce((acc, post) => acc + (post.views || 0), 0)}
               </p>
             </CardContent>
           </Card>
@@ -183,19 +282,30 @@ export default function BlogAdminPage() {
                         {post.status === "published" ? "Publié" : "Brouillon"}
                       </span>
                     </TableCell>
-                    <TableCell>{post.published_at}</TableCell>
+                    <TableCell>
+                      {post.published_at ? format(new Date(post.published_at), 'dd/MM/yyyy', { locale: fr }) : '-'}
+                    </TableCell>
                     <TableCell>{post.read_time} min</TableCell>
-                    <TableCell>{post.views}</TableCell>
+                    <TableCell>{post.views || 0}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">
                         <Button variant="ghost" size="sm">
                           <Eye className="w-4 h-4" />
                         </Button>
-                        <Button variant="ghost" size="sm">
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => openEditDialog(post)}
+                        >
                           <Pencil className="w-4 h-4" />
                         </Button>
-                        <Button variant="ghost" size="sm" className="text-red-600">
-                          <Trash2 className="w-4 h-4" onClick={() => handleDelete(post.id)} />
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-red-600"
+                          onClick={() => openDeleteDialog(post)}
+                        >
+                          <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
                     </TableCell>
@@ -205,6 +315,34 @@ export default function BlogAdminPage() {
             </Table>
           </CardContent>
         </Card>
+
+        <BlogDialog
+          open={dialogOpen}
+          onOpenChange={setDialogOpen}
+          onSubmit={mode === "create" ? handleCreate : handleUpdate}
+          defaultValues={selectedPost}
+          mode={mode}
+        />
+
+        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Cette action est irréversible. Cela supprimera définitivement cet article.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Annuler</AlertDialogCancel>
+              <AlertDialogAction
+                className="bg-red-600 hover:bg-red-700"
+                onClick={() => selectedPost && handleDelete(selectedPost.id)}
+              >
+                Supprimer
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </AdminLayout>
   );
