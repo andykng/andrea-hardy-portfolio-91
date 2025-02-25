@@ -1,4 +1,3 @@
-
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,39 +20,66 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { useRealtimeSubscription } from "@/hooks/use-realtime-subscription";
+import { useRequireAuth } from "@/hooks/use-require-auth";
 
 interface BlogPost {
-  id: number;
+  id: string;
   title: string;
   status: "draft" | "published";
   category: string;
-  publishDate: string;
-  readTime: string;
+  published_at: string | null;
+  read_time: number;
   views: number;
 }
 
 export default function BlogAdminPage() {
-  // Données fictives pour l'exemple
-  const posts: BlogPost[] = [
-    {
-      id: 1,
-      title: "Les meilleures pratiques en cybersécurité pour 2024",
-      status: "published",
-      category: "Sécurité",
-      publishDate: "2024-03-15",
-      readTime: "5 min",
-      views: 1234
+  const { toast } = useToast();
+  const { isAuthenticated } = useRequireAuth();
+
+  useRealtimeSubscription({
+    table: 'blog_posts',
+    queryKeys: ['admin-blog-posts', 'blog-posts'],
+    enabled: isAuthenticated
+  });
+
+  const { data: posts, refetch } = useQuery({
+    queryKey: ['admin-blog-posts'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('blog_posts')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data as BlogPost[];
     },
-    {
-      id: 2,
-      title: "Comment optimiser son infrastructure cloud",
-      status: "draft",
-      category: "Cloud",
-      publishDate: "2024-03-20",
-      readTime: "8 min",
-      views: 0
-    },
-  ];
+    enabled: isAuthenticated
+  });
+
+  const handleDelete = async (id: string) => {
+    const { error } = await supabase
+      .from('blog_posts')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de supprimer l'article",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Succès",
+        description: "Article supprimé avec succès",
+      });
+      refetch();
+    }
+  };
 
   return (
     <AdminLayout>
@@ -157,8 +183,8 @@ export default function BlogAdminPage() {
                         {post.status === "published" ? "Publié" : "Brouillon"}
                       </span>
                     </TableCell>
-                    <TableCell>{post.publishDate}</TableCell>
-                    <TableCell>{post.readTime}</TableCell>
+                    <TableCell>{post.published_at}</TableCell>
+                    <TableCell>{post.read_time} min</TableCell>
                     <TableCell>{post.views}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">
@@ -169,7 +195,7 @@ export default function BlogAdminPage() {
                           <Pencil className="w-4 h-4" />
                         </Button>
                         <Button variant="ghost" size="sm" className="text-red-600">
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-4 h-4" onClick={() => handleDelete(post.id)} />
                         </Button>
                       </div>
                     </TableCell>

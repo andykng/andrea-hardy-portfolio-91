@@ -12,13 +12,22 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { useRealtimeSubscription } from "@/hooks/use-realtime-subscription";
+import { useRequireAuth } from "@/hooks/use-require-auth";
 
 export default function TechWatchAdminPage() {
   const { toast } = useToast();
+  const { isAuthenticated } = useRequireAuth();
   
+  useRealtimeSubscription({
+    table: 'tech_watch',
+    queryKeys: ['admin-tech-watch', 'tech-watch'],
+    enabled: isAuthenticated
+  });
+
   const { data: articles, isLoading, refetch } = useQuery({
     queryKey: ['admin-tech-watch'],
     queryFn: async () => {
@@ -78,7 +87,7 @@ export default function TechWatchAdminPage() {
               {articles?.map((article) => (
                 <TableRow key={article.id}>
                   <TableCell>
-                    {format(new Date(article.publication_date), 'dd/MM/yyyy')}
+                    {format(new Date(article.publication_date), 'dd/MM/yyyy', { locale: fr })}
                   </TableCell>
                   <TableCell className="font-medium">{article.title}</TableCell>
                   <TableCell>{article.category}</TableCell>

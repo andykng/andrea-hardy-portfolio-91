@@ -15,6 +15,8 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import { useState } from "react";
 import { AboutSectionDialog } from "@/components/admin/about/AboutSectionDialog";
+import { useRealtimeSubscription } from "@/hooks/use-realtime-subscription";
+import { useRequireAuth } from "@/hooks/use-require-auth";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -28,11 +30,18 @@ import {
 
 export default function AboutAdminPage() {
   const { toast } = useToast();
+  const { isAuthenticated } = useRequireAuth();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedSection, setSelectedSection] = useState<any>(null);
   const [mode, setMode] = useState<"create" | "edit">("create");
   
+  useRealtimeSubscription({
+    table: 'about',
+    queryKeys: ['admin-about', 'about'],
+    enabled: isAuthenticated
+  });
+
   const { data: sections, isLoading, refetch } = useQuery({
     queryKey: ['admin-about'],
     queryFn: async () => {
@@ -43,7 +52,8 @@ export default function AboutAdminPage() {
       
       if (error) throw error;
       return data;
-    }
+    },
+    enabled: isAuthenticated
   });
 
   const handleCreate = async (formData: any) => {
@@ -63,6 +73,7 @@ export default function AboutAdminPage() {
         description: "Section créée avec succès",
       });
       refetch();
+      setDialogOpen(false);
     }
   };
 
@@ -84,6 +95,7 @@ export default function AboutAdminPage() {
         description: "Section modifiée avec succès",
       });
       refetch();
+      setDialogOpen(false);
     }
   };
 

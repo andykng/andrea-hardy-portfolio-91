@@ -1,4 +1,3 @@
-
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -20,41 +19,67 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { useRealtimeSubscription } from "@/hooks/use-realtime-subscription";
+import { useRequireAuth } from "@/hooks/use-require-auth";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 
 interface Experience {
-  id: number;
+  id: string;
   title: string;
   company: string;
-  location: string;
-  startDate: string;
-  endDate: string | "present";
-  type: "fulltime" | "contract" | "internship";
+  start_date: string;
+  end_date: string | null;
   description: string;
 }
 
 export default function ExperiencesAdminPage() {
-  const experiences: Experience[] = [
-    {
-      id: 1,
-      title: "Administratrice Système Senior",
-      company: "TechCorp",
-      location: "Paris, France",
-      startDate: "2022-01",
-      endDate: "present",
-      type: "fulltime",
-      description: "Gestion de l'infrastructure cloud et on-premise..."
+  const { toast } = useToast();
+  const { isAuthenticated } = useRequireAuth();
+
+  useRealtimeSubscription({
+    table: 'experiences',
+    queryKeys: ['admin-experiences', 'experiences'],
+    enabled: isAuthenticated
+  });
+
+  const { data: experiences, refetch } = useQuery({
+    queryKey: ['admin-experiences'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('experiences')
+        .select('*')
+        .order('start_date', { ascending: false });
+      
+      if (error) throw error;
+      return data as Experience[];
     },
-    {
-      id: 2,
-      title: "DevOps Engineer",
-      company: "CloudTech",
-      location: "Lyon, France",
-      startDate: "2020-03",
-      endDate: "2021-12",
-      type: "fulltime",
-      description: "Mise en place de pipelines CI/CD..."
-    },
-  ];
+    enabled: isAuthenticated
+  });
+
+  const handleDelete = async (id: string) => {
+    const { error } = await supabase
+      .from('experiences')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de supprimer l'expérience",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Succès",
+        description: "Expérience supprimée avec succès",
+      });
+      refetch();
+    }
+  };
 
   return (
     <AdminLayout>
@@ -79,7 +104,7 @@ export default function ExperiencesAdminPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold">{experiences.length}</p>
+              <p className="text-3xl font-bold">{experiences?.length || 0}</p>
             </CardContent>
           </Card>
           
@@ -92,7 +117,7 @@ export default function ExperiencesAdminPage() {
             </CardHeader>
             <CardContent>
               <p className="text-3xl font-bold">
-                {new Set(experiences.map(e => e.company)).size}
+                {experiences ? new Set(experiences.map(e => e.company)).size : 0}
               </p>
             </CardContent>
           </Card>
@@ -106,7 +131,7 @@ export default function ExperiencesAdminPage() {
             </CardHeader>
             <CardContent>
               <p className="text-3xl font-bold">
-                {new Set(experiences.map(e => e.location)).size}
+                {experiences ? new Set(experiences.map(e => e.company)).size : 0}
               </p>
             </CardContent>
           </Card>
@@ -146,24 +171,19 @@ export default function ExperiencesAdminPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {experiences.map((exp) => (
+                  {experiences?.map((exp) => (
                     <TableRow key={exp.id}>
                       <TableCell className="font-medium">{exp.title}</TableCell>
                       <TableCell>{exp.company}</TableCell>
-                      <TableCell>{exp.location}</TableCell>
+                      <TableCell>{exp.company}</TableCell>
                       <TableCell>
-                        {exp.startDate} - {exp.endDate === "present" ? "Présent" : exp.endDate}
+                        {exp.start_date} - {exp.end_date === null ? "Présent" : exp.end_date}
                       </TableCell>
                       <TableCell>
                         <span className={`px-2 py-1 rounded-full text-xs ${
-                          exp.type === "fulltime" 
-                            ? "bg-green-100 text-green-700"
-                            : exp.type === "contract"
-                            ? "bg-blue-100 text-blue-700"
-                            : "bg-yellow-100 text-yellow-700"
+                          "bg-green-100 text-green-700"
                         }`}>
-                          {exp.type === "fulltime" ? "CDI" : 
-                           exp.type === "contract" ? "Freelance" : "Stage"}
+                          {"CDI"}
                         </span>
                       </TableCell>
                       <TableCell className="text-right">
@@ -171,7 +191,12 @@ export default function ExperiencesAdminPage() {
                           <Button variant="ghost" size="sm">
                             <Pencil className="w-4 h-4" />
                           </Button>
-                          <Button variant="ghost" size="sm" className="text-red-600">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-red-600"
+                            onClick={() => handleDelete(exp.id)}
+                          >
                             <Trash2 className="w-4 h-4" />
                           </Button>
                         </div>
