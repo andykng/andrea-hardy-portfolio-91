@@ -1,32 +1,12 @@
 
 import { AdminLayout } from "@/components/admin/AdminLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { 
-  Plus, 
-  Pencil, 
-  Trash2, 
-  Briefcase,
-  Building2,
-  Calendar,
-  MapPin,
-  ArrowUpDown
-} from "lucide-react";
-import { 
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Plus } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useRealtimeSubscription } from "@/hooks/use-realtime-subscription";
 import { useRequireAuth } from "@/hooks/use-require-auth";
-import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -39,18 +19,9 @@ import {
 } from "@/components/ui/alert-dialog";
 import { ExperienceDialog } from "@/components/admin/experiences/ExperienceDialog";
 import { useState } from "react";
-
-interface Experience {
-  id: string;
-  title: string;
-  company: string;
-  location: string;
-  type: string;
-  description: string;
-  start_date: string;
-  end_date?: string;
-  skills: string[];
-}
+import { Experience } from "@/types/experience";
+import { ExperienceStats } from "@/components/admin/experiences/ExperienceStats";
+import { ExperienceTable } from "@/components/admin/experiences/ExperienceTable";
 
 export default function ExperiencesAdminPage() {
   const { toast } = useToast();
@@ -182,131 +153,13 @@ export default function ExperiencesAdminPage() {
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Briefcase className="w-5 h-5" />
-                Total Expériences
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold">{experiences?.length || 0}</p>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Building2 className="w-5 h-5" />
-                Entreprises
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold">
-                {experiences ? new Set(experiences.map(e => e.company)).size : 0}
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <MapPin className="w-5 h-5" />
-                Villes
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold">
-                {experiences ? new Set(experiences.map(e => e.location)).size : 0}
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="w-5 h-5" />
-                Années d'exp.
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold">5</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        <Card>
-          <CardHeader className="flex flex-col sm:flex-row gap-4 justify-between">
-            <CardTitle>Liste des Expériences</CardTitle>
-            <Button variant="outline" size="sm">
-              <ArrowUpDown className="w-4 h-4 mr-2" />
-              Trier par date
-            </Button>
-          </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Poste</TableHead>
-                    <TableHead>Entreprise</TableHead>
-                    <TableHead>Lieu</TableHead>
-                    <TableHead>Période</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {experiences?.map((exp) => (
-                    <TableRow key={exp.id}>
-                      <TableCell className="font-medium">{exp.title}</TableCell>
-                      <TableCell>{exp.company}</TableCell>
-                      <TableCell>{exp.location}</TableCell>
-                      <TableCell>
-                        {format(new Date(exp.start_date), 'dd/MM/yyyy', { locale: fr })} - {
-                          exp.end_date 
-                            ? format(new Date(exp.end_date), 'dd/MM/yyyy', { locale: fr })
-                            : "Présent"
-                        }
-                      </TableCell>
-                      <TableCell>
-                        <span className={`px-2 py-1 rounded-full text-xs ${
-                          exp.type === 'CDI' ? "bg-green-100 text-green-700" :
-                          exp.type === 'CDD' ? "bg-blue-100 text-blue-700" :
-                          exp.type === 'Stage' ? "bg-yellow-100 text-yellow-700" :
-                          exp.type === 'Freelance' ? "bg-purple-100 text-purple-700" :
-                          "bg-gray-100 text-gray-700"
-                        }`}>
-                          {exp.type}
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => openEditDialog(exp)}
-                          >
-                            <Pencil className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-red-600"
-                            onClick={() => openDeleteDialog(exp)}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          </CardContent>
-        </Card>
+        <ExperienceStats experiences={experiences} />
+        
+        <ExperienceTable
+          experiences={experiences}
+          onEdit={openEditDialog}
+          onDelete={openDeleteDialog}
+        />
 
         <ExperienceDialog
           open={dialogOpen}
