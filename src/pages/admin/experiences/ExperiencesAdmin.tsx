@@ -1,3 +1,4 @@
+
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -26,19 +27,38 @@ import { useRealtimeSubscription } from "@/hooks/use-realtime-subscription";
 import { useRequireAuth } from "@/hooks/use-require-auth";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { ExperienceDialog } from "@/components/admin/experiences/ExperienceDialog";
+import { useState } from "react";
 
 interface Experience {
   id: string;
   title: string;
   company: string;
-  start_date: string;
-  end_date: string | null;
+  location: string;
+  type: string;
   description: string;
+  start_date: string;
+  end_date?: string;
+  skills: string[];
 }
 
 export default function ExperiencesAdminPage() {
   const { toast } = useToast();
   const { isAuthenticated } = useRequireAuth();
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedExperience, setSelectedExperience] = useState<Experience | null>(null);
+  const [mode, setMode] = useState<"create" | "edit">("create");
 
   useRealtimeSubscription({
     table: 'experiences',
@@ -60,6 +80,51 @@ export default function ExperiencesAdminPage() {
     enabled: isAuthenticated
   });
 
+  const handleCreate = async (formData: Omit<Experience, 'id'>) => {
+    const { error } = await supabase
+      .from('experiences')
+      .insert([formData]);
+
+    if (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de créer l'expérience",
+        variant: "destructive",
+      });
+      throw error;
+    }
+
+    toast({
+      title: "Succès",
+      description: "Expérience créée avec succès",
+    });
+    refetch();
+  };
+
+  const handleUpdate = async (formData: Partial<Experience>) => {
+    if (!selectedExperience) return;
+
+    const { error } = await supabase
+      .from('experiences')
+      .update(formData)
+      .eq('id', selectedExperience.id);
+
+    if (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de modifier l'expérience",
+        variant: "destructive",
+      });
+      throw error;
+    }
+
+    toast({
+      title: "Succès",
+      description: "Expérience modifiée avec succès",
+    });
+    refetch();
+  };
+
   const handleDelete = async (id: string) => {
     const { error } = await supabase
       .from('experiences')
@@ -79,7 +144,29 @@ export default function ExperiencesAdminPage() {
       });
       refetch();
     }
+    setDeleteDialogOpen(false);
   };
+
+  const openCreateDialog = () => {
+    setMode("create");
+    setSelectedExperience(null);
+    setDialogOpen(true);
+  };
+
+  const openEditDialog = (experience: Experience) => {
+    setMode("edit");
+    setSelectedExperience(experience);
+    setDialogOpen(true);
+  };
+
+  const openDeleteDialog = (experience: Experience) => {
+    setSelectedExperience(experience);
+    setDeleteDialogOpen(true);
+  };
+
+  if (!isAuthenticated) {
+    return null;
+  }
 
   return (
     <AdminLayout>
@@ -89,7 +176,7 @@ export default function ExperiencesAdminPage() {
             <h1 className="text-3xl font-bold">Gestion des Expériences</h1>
             <p className="text-gray-500 mt-1">Gérez votre parcours professionnel</p>
           </div>
-          <Button size="lg">
+          <Button size="lg" onClick={openCreateDialog}>
             <Plus className="w-4 h-4 mr-2" />
             Nouvelle Expérience
           </Button>
@@ -131,7 +218,7 @@ export default function ExperiencesAdminPage() {
             </CardHeader>
             <CardContent>
               <p className="text-3xl font-bold">
-                {experiences ? new Set(experiences.map(e => e.company)).size : 0}
+                {experiences ? new Set(experiences.map(e => e.location)).size : 0}
               </p>
             </CardContent>
           </Card>
@@ -175,27 +262,39 @@ export default function ExperiencesAdminPage() {
                     <TableRow key={exp.id}>
                       <TableCell className="font-medium">{exp.title}</TableCell>
                       <TableCell>{exp.company}</TableCell>
-                      <TableCell>{exp.company}</TableCell>
+                      <TableCell>{exp.location}</TableCell>
                       <TableCell>
-                        {exp.start_date} - {exp.end_date === null ? "Présent" : exp.end_date}
+                        {format(new Date(exp.start_date), 'dd/MM/yyyy', { locale: fr })} - {
+                          exp.end_date 
+                            ? format(new Date(exp.end_date), 'dd/MM/yyyy', { locale: fr })
+                            : "Présent"
+                        }
                       </TableCell>
                       <TableCell>
                         <span className={`px-2 py-1 rounded-full text-xs ${
-                          "bg-green-100 text-green-700"
+                          exp.type === 'CDI' ? "bg-green-100 text-green-700" :
+                          exp.type === 'CDD' ? "bg-blue-100 text-blue-700" :
+                          exp.type === 'Stage' ? "bg-yellow-100 text-yellow-700" :
+                          exp.type === 'Freelance' ? "bg-purple-100 text-purple-700" :
+                          "bg-gray-100 text-gray-700"
                         }`}>
-                          {"CDI"}
+                          {exp.type}
                         </span>
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-2">
-                          <Button variant="ghost" size="sm">
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => openEditDialog(exp)}
+                          >
                             <Pencil className="w-4 h-4" />
                           </Button>
                           <Button
                             variant="ghost"
                             size="sm"
                             className="text-red-600"
-                            onClick={() => handleDelete(exp.id)}
+                            onClick={() => openDeleteDialog(exp)}
                           >
                             <Trash2 className="w-4 h-4" />
                           </Button>
@@ -208,6 +307,34 @@ export default function ExperiencesAdminPage() {
             </div>
           </CardContent>
         </Card>
+
+        <ExperienceDialog
+          open={dialogOpen}
+          onOpenChange={setDialogOpen}
+          onSubmit={mode === "create" ? handleCreate : handleUpdate}
+          defaultValues={selectedExperience}
+          mode={mode}
+        />
+
+        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Cette action est irréversible. Cela supprimera définitivement cette expérience.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Annuler</AlertDialogCancel>
+              <AlertDialogAction
+                className="bg-red-600 hover:bg-red-700"
+                onClick={() => selectedExperience && handleDelete(selectedExperience.id)}
+              >
+                Supprimer
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </AdminLayout>
   );
