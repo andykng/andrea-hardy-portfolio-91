@@ -1,42 +1,24 @@
 
 import { AdminLayout } from "@/components/admin/AdminLayout";
-import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Plus, Pencil, Trash2, Eye } from "lucide-react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { useToast } from "@/hooks/use-toast";
+import { useRealtimeSubscription } from "@/hooks/use-realtime-subscription";
+import { useState } from "react";
 import { ProjectDialog } from "@/components/admin/projects/ProjectDialog";
-import { useToast } from "@/components/ui/use-toast";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { DeleteConfirmation } from "@/components/admin/DeleteConfirmation";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface Project {
   id: string;
   title: string;
   description: string;
-  image_url: string;
-  github_url: string;
-  demo_url: string;
+  image_url?: string;
+  github_url?: string;
+  demo_url?: string;
   technologies: string[];
-  animation_type?: string;
-  created_at: string;
-  updated_at: string;
 }
 
 export default function ProjectsAdminPage() {
@@ -46,7 +28,12 @@ export default function ProjectsAdminPage() {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [mode, setMode] = useState<"create" | "edit">("create");
 
-  const { data: projects, isLoading, refetch } = useQuery({
+  useRealtimeSubscription({
+    table: 'projects',
+    queryKeys: ['admin-projects', 'projects']
+  });
+
+  const { data: projects, refetch } = useQuery({
     queryKey: ['admin-projects'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -59,7 +46,7 @@ export default function ProjectsAdminPage() {
     }
   });
 
-  const handleCreate = async (formData: any) => {
+  const handleCreate = async (formData: Omit<Project, 'id'>) => {
     const { error } = await supabase
       .from('projects')
       .insert([formData]);
@@ -70,16 +57,19 @@ export default function ProjectsAdminPage() {
         description: "Impossible de créer le projet",
         variant: "destructive",
       });
-    } else {
-      toast({
-        title: "Succès",
-        description: "Projet créé avec succès",
-      });
-      refetch();
+      throw error;
     }
+
+    toast({
+      title: "Succès",
+      description: "Projet créé avec succès",
+    });
+    refetch();
   };
 
-  const handleUpdate = async (formData: any) => {
+  const handleUpdate = async (formData: Partial<Project>) => {
+    if (!selectedProject) return;
+
     const { error } = await supabase
       .from('projects')
       .update(formData)
@@ -91,20 +81,23 @@ export default function ProjectsAdminPage() {
         description: "Impossible de modifier le projet",
         variant: "destructive",
       });
-    } else {
-      toast({
-        title: "Succès",
-        description: "Projet modifié avec succès",
-      });
-      refetch();
+      throw error;
     }
+
+    toast({
+      title: "Succès",
+      description: "Projet modifié avec succès",
+    });
+    refetch();
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async () => {
+    if (!selectedProject) return;
+
     const { error } = await supabase
       .from('projects')
       .delete()
-      .eq('id', id);
+      .eq('id', selectedProject.id);
 
     if (error) {
       toast({
@@ -122,151 +115,96 @@ export default function ProjectsAdminPage() {
     setDeleteDialogOpen(false);
   };
 
-  const openCreateDialog = () => {
-    setMode("create");
-    setSelectedProject(null);
-    setDialogOpen(true);
-  };
-
-  const openEditDialog = (project: any) => {
-    setMode("edit");
-    setSelectedProject(project);
-    setDialogOpen(true);
-  };
-
-  const openDeleteDialog = (project: any) => {
-    setSelectedProject(project);
-    setDeleteDialogOpen(true);
-  };
-
   return (
     <AdminLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary via-purple-500 to-pink-500 bg-clip-text text-transparent">
-            Gestion des projets
-          </h1>
-          <Button 
-            onClick={openCreateDialog}
-            className="bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 transition-all"
-          >
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold">Gestion des Projets</h1>
+            <p className="text-gray-500 mt-1">Gérez vos projets et réalisations</p>
+          </div>
+          <Button onClick={() => {
+            setMode("create");
+            setSelectedProject(null);
+            setDialogOpen(true);
+          }}>
             <Plus className="w-4 h-4 mr-2" />
-            Ajouter un projet
+            Nouveau Projet
           </Button>
         </div>
 
-        <div className="rounded-lg border bg-card shadow-sm overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-muted/50">
-                <TableHead>Image</TableHead>
-                <TableHead>Titre</TableHead>
-                <TableHead>Technologies</TableHead>
-                <TableHead>Animation</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {projects?.map((project) => (
-                <TableRow key={project.id} className="hover:bg-muted/30">
-                  <TableCell>
-                    {project.image_url && (
-                      <div className="relative w-16 h-16 rounded-lg overflow-hidden">
-                        <img
-                          src={project.image_url}
-                          alt={project.title}
-                          className="object-cover w-full h-full transition-transform hover:scale-110"
-                        />
-                      </div>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <div className="font-medium">{project.title}</div>
-                    <div className="text-sm text-muted-foreground line-clamp-1">
-                      {project.description}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-wrap gap-1.5">
-                      {project.technologies.map((tech: string, index: number) => (
-                        <span
-                          key={index}
-                          className="px-2.5 py-1 text-xs font-medium rounded-full bg-gradient-to-r from-primary/10 to-purple-500/10 text-primary border border-primary/20"
-                        >
-                          {tech}
-                        </span>
-                      ))}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
-                      {project.animation_type}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {projects?.map((project) => (
+            <Card key={project.id} className="overflow-hidden">
+              {project.image_url && (
+                <div className="aspect-video relative overflow-hidden">
+                  <img
+                    src={project.image_url}
+                    alt={project.title}
+                    className="object-cover w-full h-full"
+                  />
+                </div>
+              )}
+              <CardHeader>
+                <CardTitle>{project.title}</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm text-gray-500 line-clamp-2">{project.description}</p>
+                <div className="flex flex-wrap gap-2">
+                  {project.technologies.map((tech, index) => (
+                    <span
+                      key={index}
+                      className="px-2 py-1 text-xs rounded-full bg-primary/10 text-primary"
+                    >
+                      {tech}
                     </span>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="hover:bg-primary/10 hover:text-primary"
-                        onClick={() => window.open(`/projects/${project.id}`, '_blank')}
-                      >
-                        <Eye className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="hover:bg-purple-500/10 hover:text-purple-500"
-                        onClick={() => openEditDialog(project)}
-                      >
-                        <Pencil className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="hover:bg-red-500/10 hover:text-red-500"
-                        onClick={() => openDeleteDialog(project)}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+                  ))}
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1"
+                    onClick={() => {
+                      setMode("edit");
+                      setSelectedProject(project);
+                      setDialogOpen(true);
+                    }}
+                  >
+                    Modifier
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className="flex-1"
+                    onClick={() => {
+                      setSelectedProject(project);
+                      setDeleteDialogOpen(true);
+                    }}
+                  >
+                    Supprimer
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
 
         <ProjectDialog
           open={dialogOpen}
           onOpenChange={setDialogOpen}
           onSubmit={mode === "create" ? handleCreate : handleUpdate}
-          defaultValues={selectedProject}
+          defaultValues={selectedProject ?? undefined}
           mode={mode}
         />
 
-        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-          <AlertDialogContent className="bg-card">
-            <AlertDialogHeader>
-              <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
-              <AlertDialogDescription className="text-muted-foreground">
-                Cette action est irréversible. Cela supprimera définitivement le projet
-                et son contenu.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel className="bg-muted hover:bg-muted/90">
-                Annuler
-              </AlertDialogCancel>
-              <AlertDialogAction
-                className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700"
-                onClick={() => handleDelete(selectedProject?.id)}
-              >
-                Supprimer
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        <DeleteConfirmation
+          open={deleteDialogOpen}
+          onOpenChange={setDeleteDialogOpen}
+          onConfirm={handleDelete}
+          title="Supprimer le projet ?"
+          description="Cette action est irréversible. Êtes-vous sûr de vouloir supprimer ce projet ?"
+        />
       </div>
     </AdminLayout>
   );

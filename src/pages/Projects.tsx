@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Layout } from "@/components/Layout";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useRealtimeSubscription } from "@/hooks/use-realtime-subscription";
 
 interface Project {
   id: string;
@@ -14,10 +15,14 @@ interface Project {
   technologies: string[];
   github_url?: string;
   demo_url?: string;
-  animation_type?: string;
 }
 
 export default function ProjectsPage() {
+  useRealtimeSubscription({
+    table: 'projects',
+    queryKeys: ['projects']
+  });
+
   const { data: projects } = useQuery({
     queryKey: ['projects'],
     queryFn: async () => {
@@ -33,7 +38,7 @@ export default function ProjectsPage() {
 
   return (
     <Layout>
-      <div className="space-y-12">
+      <div className="container mx-auto px-4 py-8 space-y-12">
         <motion.div 
           className="text-center space-y-4"
           initial={{ opacity: 0, y: 20 }}
