@@ -39,9 +39,13 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
   return (
     <Layout>
       <div className="container mx-auto px-4 py-8">
-        <div className="flex flex-col md:flex-row gap-8">
-          <AdminSidebar />
-          <main className="flex-1">{children}</main>
+        <div className="grid grid-cols-1 md:grid-cols-[240px_1fr] gap-8">
+          <div className="md:sticky md:top-20 md:h-[calc(100vh-5rem)] overflow-y-auto">
+            <AdminSidebar />
+          </div>
+          <main className="min-w-0">
+            {children}
+          </main>
         </div>
       </div>
     </Layout>

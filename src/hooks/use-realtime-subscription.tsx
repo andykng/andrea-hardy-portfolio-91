@@ -20,15 +20,19 @@ export const useRealtimeSubscription = ({ table, queryKeys, enabled = true }: Re
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table },
-        () => {
+        (payload) => {
+          console.log(`[Realtime] ${table} changed:`, payload);
           queryKeys.forEach(key => {
             queryClient.invalidateQueries({ queryKey: [key] });
           });
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log(`[Realtime] Subscription status for ${table}:`, status);
+      });
 
     return () => {
+      console.log(`[Realtime] Unsubscribing from ${table}`);
       supabase.removeChannel(channel);
     };
   }, [queryClient, table, queryKeys, enabled]);
