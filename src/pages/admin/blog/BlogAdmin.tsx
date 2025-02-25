@@ -52,6 +52,7 @@ interface BlogPost {
   content: string;
   excerpt?: string;
   image_url?: string;
+  slug: string;
 }
 
 export default function BlogAdminPage() {
@@ -83,11 +84,36 @@ export default function BlogAdminPage() {
   });
 
   const handleCreate = async (formData: Partial<BlogPost>) => {
+    // Vérification que les champs requis sont présents
+    if (!formData.title || !formData.content) {
+      toast({
+        title: "Erreur",
+        description: "Le titre et le contenu sont requis",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Génération du slug à partir du titre
+    const slug = formData.title
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
+
     const { error } = await supabase
       .from('blog_posts')
       .insert([{
-        ...formData,
-        published_at: formData.status === 'published' ? new Date().toISOString() : null
+        title: formData.title,
+        content: formData.content,
+        slug,
+        status: formData.status || 'draft',
+        category: formData.category,
+        read_time: formData.read_time,
+        excerpt: formData.excerpt,
+        image_url: formData.image_url,
+        published_at: formData.status === 'published' ? new Date().toISOString() : null,
       }]);
 
     if (error) {
