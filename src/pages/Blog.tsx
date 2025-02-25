@@ -16,6 +16,7 @@ interface BlogPost {
   category: string;
   image_url: string | null;
   published_at: string | null;
+  created_at: string;  // Ajout de la propriété manquante
   read_time: number;
   status: "draft" | "published";
 }
