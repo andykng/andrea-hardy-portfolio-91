@@ -9,18 +9,25 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { ImageUpload } from "../blog/ImageUpload";
+
+interface AboutSection {
+  id?: string;
+  title: string;
+  content: string;
+  section: string;
+  order_index: number;
+  image_url?: string;
+}
 
 interface AboutSectionDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: { title: string; content: string; section: string; order_index: number }) => Promise<void>;
-  defaultValues?: {
-    title: string;
-    content: string;
-    section: string;
-    order_index: number;
-  };
+  onSubmit: (data: AboutSection) => Promise<void>;
+  defaultValues?: Partial<AboutSection>;
   mode: "create" | "edit";
 }
 
@@ -32,14 +39,14 @@ export function AboutSectionDialog({
   mode,
 }: AboutSectionDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formData, setFormData] = useState(
-    defaultValues || {
-      title: "",
-      content: "",
-      section: "",
-      order_index: 0,
-    }
-  );
+  const [isUploading, setIsUploading] = useState(false);
+  const [formData, setFormData] = useState<AboutSection>({
+    title: defaultValues?.title || "",
+    content: defaultValues?.content || "",
+    section: defaultValues?.section || "",
+    order_index: defaultValues?.order_index || 0,
+    image_url: defaultValues?.image_url || "",
+  });
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -54,73 +61,101 @@ export function AboutSectionDialog({
     }
   };
 
+  const handleImageUpload = async (file: File) => {
+    setIsUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${crypto.randomUUID()}.${fileExt}`;
+      const filePath = `about/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('images')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('images')
+        .getPublicUrl(filePath);
+
+      setFormData(prev => ({ ...prev, image_url: publicUrl }));
+    } catch (error) {
+      console.error('Error uploading image:', error);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[625px]">
         <DialogHeader>
           <DialogTitle>
             {mode === "create" ? "Ajouter une section" : "Modifier la section"}
           </DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit}>
-          <div className="grid gap-4 py-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid gap-6 py-4">
             <div className="grid gap-2">
-              <label htmlFor="title">Titre</label>
+              <Label htmlFor="title">Titre</Label>
               <Input
                 id="title"
                 value={formData.title}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, title: e.target.value }))
-                }
+                onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
                 required
               />
             </div>
+
             <div className="grid gap-2">
-              <label htmlFor="section">Section</label>
+              <Label htmlFor="section">Section</Label>
               <Input
                 id="section"
                 value={formData.section}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, section: e.target.value }))
-                }
+                onChange={(e) => setFormData((prev) => ({ ...prev, section: e.target.value }))}
                 required
               />
             </div>
+
             <div className="grid gap-2">
-              <label htmlFor="order">Ordre</label>
+              <Label htmlFor="order">Ordre</Label>
               <Input
                 id="order"
                 type="number"
                 value={formData.order_index}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    order_index: parseInt(e.target.value),
-                  }))
-                }
+                onChange={(e) => setFormData((prev) => ({
+                  ...prev,
+                  order_index: parseInt(e.target.value),
+                }))}
                 required
               />
             </div>
+
             <div className="grid gap-2">
-              <label htmlFor="content">Contenu</label>
+              <Label>Image (optionnelle)</Label>
+              <ImageUpload
+                value={formData.image_url}
+                onChange={handleImageUpload}
+                isUploading={isUploading}
+              />
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="content">Contenu</Label>
               <Textarea
                 id="content"
                 value={formData.content}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, content: e.target.value }))
-                }
+                onChange={(e) => setFormData((prev) => ({ ...prev, content: e.target.value }))}
                 className="min-h-[200px]"
                 required
               />
             </div>
           </div>
           <DialogFooter>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting
-                ? "Enregistrement..."
-                : mode === "create"
-                ? "Créer"
-                : "Mettre à jour"}
+            <Button 
+              type="submit" 
+              disabled={isSubmitting || isUploading}
+            >
+              {isSubmitting ? "Enregistrement..." : mode === "create" ? "Créer" : "Mettre à jour"}
             </Button>
           </DialogFooter>
         </form>

@@ -14,6 +14,7 @@ export type Database = {
           content: string
           created_at: string
           id: string
+          image_url: string | null
           order_index: number
           section: string
           title: string
@@ -23,6 +24,7 @@ export type Database = {
           content: string
           created_at?: string
           id?: string
+          image_url?: string | null
           order_index: number
           section: string
           title: string
@@ -32,6 +34,7 @@ export type Database = {
           content?: string
           created_at?: string
           id?: string
+          image_url?: string | null
           order_index?: number
           section?: string
           title?: string
@@ -97,8 +100,11 @@ export type Database = {
           description: string | null
           end_date: string | null
           id: string
+          location: string | null
+          skills: string[] | null
           start_date: string
           title: string
+          type: string | null
           updated_at: string
         }
         Insert: {
@@ -107,8 +113,11 @@ export type Database = {
           description?: string | null
           end_date?: string | null
           id?: string
+          location?: string | null
+          skills?: string[] | null
           start_date: string
           title: string
+          type?: string | null
           updated_at?: string
         }
         Update: {
@@ -117,8 +126,11 @@ export type Database = {
           description?: string | null
           end_date?: string | null
           id?: string
+          location?: string | null
+          skills?: string[] | null
           start_date?: string
           title?: string
+          type?: string | null
           updated_at?: string
         }
         Relationships: []
