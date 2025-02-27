@@ -54,17 +54,15 @@ function App() {
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/login" element={<LoginPage />} />
 
-          {/* Admin Routes - Nested under /admin */}
-          <Route path="/admin">
-            <Route index element={<DashboardPage />} />
-            <Route path="a-propos" element={<AboutAdmin />} />
-            <Route path="blog" element={<BlogAdmin />} />
-            <Route path="formation" element={<EducationAdmin />} />
-            <Route path="experiences" element={<ExperiencesAdmin />} />
-            <Route path="projets" element={<ProjectsAdmin />} />
-            <Route path="competences" element={<SkillsAdmin />} />
-            <Route path="veille-techno" element={<TechWatchAdmin />} />
-          </Route>
+          {/* Admin Routes - Flat structure pour éviter les problèmes de Outlet */}
+          <Route path="/admin" element={<DashboardPage />} />
+          <Route path="/admin/a-propos" element={<AboutAdmin />} />
+          <Route path="/admin/blog" element={<BlogAdmin />} />
+          <Route path="/admin/formation" element={<EducationAdmin />} />
+          <Route path="/admin/experiences" element={<ExperiencesAdmin />} />
+          <Route path="/admin/projets" element={<ProjectsAdmin />} />
+          <Route path="/admin/competences" element={<SkillsAdmin />} />
+          <Route path="/admin/veille-techno" element={<TechWatchAdmin />} />
 
           {/* 404 Route */}
           <Route path="*" element={<NotFound />} />
