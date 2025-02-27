@@ -3,6 +3,7 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { Header } from "./Header";
 import { Footer } from "./Footer";
 import { useEffect, useRef, useState } from "react";
+import { useMedia } from "@/hooks/use-mobile";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -12,9 +13,11 @@ export const Layout = ({ children }: LayoutProps) => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const mainRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll();
+  const isMobile = useMedia("(max-width: 768px)");
   
-  const bgOpacity = useTransform(scrollYProgress, [0, 0.5], [1, 0.8]);
-  const bgScale = useTransform(scrollYProgress, [0, 0.5], [1, 1.05]);
+  const bgOpacity = useTransform(scrollYProgress, [0, 0.5], [1, 0.9]);
+  // Réduire l'effet de scale sur mobile pour plus de stabilité
+  const bgScale = useTransform(scrollYProgress, [0, 0.5], [1, isMobile ? 1.01 : 1.05]);
 
   // Attach Botpress chatbot
   useEffect(() => {
@@ -29,9 +32,11 @@ export const Layout = ({ children }: LayoutProps) => {
     botContentScript.async = true;
     document.body.appendChild(botContentScript);
 
-    // Track mouse position for AR-like effects
+    // Track mouse position for AR-like effects - seulement sur desktop
     const handleMouseMove = (e: MouseEvent) => {
-      setMousePosition({ x: e.clientX, y: e.clientY });
+      if (!isMobile) {
+        setMousePosition({ x: e.clientX, y: e.clientY });
+      }
     };
 
     window.addEventListener('mousemove', handleMouseMove);
@@ -39,14 +44,18 @@ export const Layout = ({ children }: LayoutProps) => {
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
       // Clean up scripts if needed
-      document.body.removeChild(injectScript);
-      document.body.removeChild(botContentScript);
+      if (document.body.contains(injectScript)) {
+        document.body.removeChild(injectScript);
+      }
+      if (document.body.contains(botContentScript)) {
+        document.body.removeChild(botContentScript);
+      }
     };
-  }, []);
+  }, [isMobile]);
 
-  // Calculate 3D effect based on mouse position
-  const calculateParallax = (depth = 30) => {
-    if (!mainRef.current) return { x: 0, y: 0 };
+  // Calculate 3D effect based on mouse position - réduit sur mobile
+  const calculateParallax = (depth = isMobile ? 100 : 30) => {
+    if (!mainRef.current || isMobile) return { x: 0, y: 0 };
     
     const rect = mainRef.current.getBoundingClientRect();
     const centerX = rect.left + rect.width / 2;
@@ -60,10 +69,10 @@ export const Layout = ({ children }: LayoutProps) => {
 
   const parallaxEffect = calculateParallax();
 
-  // Generate floating particles for AR effect
-  const particles = Array.from({ length: 15 }, (_, i) => ({
+  // Generate floating particles for AR effect - réduit sur mobile
+  const particles = Array.from({ length: isMobile ? 5 : 15 }, (_, i) => ({
     id: i,
-    size: Math.random() * 10 + 5,
+    size: Math.random() * (isMobile ? 5 : 10) + (isMobile ? 3 : 5),
     x: Math.random() * 100,
     y: Math.random() * 100,
     duration: Math.random() * 15 + 10,
@@ -71,8 +80,8 @@ export const Layout = ({ children }: LayoutProps) => {
   }));
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-accent/5 to-muted/10 relative overflow-hidden">
-      {/* AR-style animated background elements */}
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-blue-100/20 to-white relative overflow-hidden">
+      {/* AR-style animated background elements - réduit sur mobile */}
       <motion.div 
         className="absolute inset-0 -z-10"
         style={{
@@ -80,13 +89,13 @@ export const Layout = ({ children }: LayoutProps) => {
           scale: bgScale
         }}
       >
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-50/30 via-white to-primary/5 mix-blend-overlay" />
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-100 via-white to-blue-50 mix-blend-overlay" />
         
-        {/* Floating particles */}
-        {particles.map((particle) => (
+        {/* Floating particles - moins nombreux sur mobile */}
+        {!isMobile && particles.map((particle) => (
           <motion.div
             key={particle.id}
-            className="absolute rounded-full bg-primary/10 backdrop-blur-sm"
+            className="absolute rounded-full bg-blue-200/30 backdrop-blur-sm"
             style={{
               width: particle.size,
               height: particle.size,
@@ -107,33 +116,35 @@ export const Layout = ({ children }: LayoutProps) => {
           />
         ))}
         
-        {/* 3D moving effect based on mouse position */}
-        <motion.div
-          className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(30,144,255,0.1),transparent_50%)]"
-          animate={{
-            x: parallaxEffect.x * 2,
-            y: parallaxEffect.y * 2,
-          }}
-          transition={{ type: "spring", damping: 15 }}
-        />
+        {/* 3D moving effect based on mouse position - désactivé sur mobile */}
+        {!isMobile && (
+          <motion.div
+            className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(30,144,255,0.15),transparent_60%)]"
+            animate={{
+              x: parallaxEffect.x * 2,
+              y: parallaxEffect.y * 2,
+            }}
+            transition={{ type: "spring", damping: 15 }}
+          />
+        )}
       </motion.div>
 
       <Header />
       <motion.main 
         ref={mainRef}
         className="flex-grow pt-14 md:pt-16 pb-20 md:pb-0 min-h-[calc(100vh-4rem)]"
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: isMobile ? 10 : 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
+        transition={{ duration: isMobile ? 0.3 : 0.5 }}
         style={{
-          perspective: "1000px",
+          perspective: isMobile ? "500px" : "1000px",
         }}
       >
         <motion.div
           style={{
             transformStyle: "preserve-3d",
-            x: parallaxEffect.x,
-            y: parallaxEffect.y,
+            x: isMobile ? 0 : parallaxEffect.x,
+            y: isMobile ? 0 : parallaxEffect.y,
           }}
           transition={{ type: "spring", damping: 25 }}
         >
@@ -142,25 +153,27 @@ export const Layout = ({ children }: LayoutProps) => {
       </motion.main>
       <Footer className="hidden md:block" />
       
-      {/* Logo watermark for AR effect */}
-      <motion.div
-        className="fixed bottom-20 md:bottom-10 right-10 w-20 h-20 opacity-10 pointer-events-none"
-        animate={{ 
-          rotate: [0, 10, 0, -10, 0],
-          scale: [1, 1.05, 1, 0.95, 1] 
-        }}
-        transition={{ 
-          duration: 20,
-          repeat: Infinity,
-          ease: "linear"
-        }}
-      >
-        <img 
-          src="https://res.cloudinary.com/drbfimvy9/image/upload/v1740674528/Logo_500x500_px_3_qaqvgc.png" 
-          alt="Logo watermark"
-          className="w-full h-full object-contain"
-        />
-      </motion.div>
+      {/* Logo watermark for AR effect - plus petit et moins visible sur mobile */}
+      {!isMobile && (
+        <motion.div
+          className="fixed bottom-20 md:bottom-10 right-10 w-16 md:w-20 h-16 md:h-20 opacity-10 pointer-events-none"
+          animate={{ 
+            rotate: [0, 10, 0, -10, 0],
+            scale: [1, 1.05, 1, 0.95, 1] 
+          }}
+          transition={{ 
+            duration: 20,
+            repeat: Infinity,
+            ease: "linear"
+          }}
+        >
+          <img 
+            src="https://res.cloudinary.com/drbfimvy9/image/upload/v1740674528/Logo_500x500_px_3_qaqvgc.png" 
+            alt="Logo watermark"
+            className="w-full h-full object-contain"
+          />
+        </motion.div>
+      )}
     </div>
   );
 }
