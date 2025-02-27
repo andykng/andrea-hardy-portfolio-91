@@ -60,7 +60,7 @@ export default function IndexPage() {
             <div className="flex flex-wrap justify-center gap-4 pt-4">
               <Button
                 size="lg"
-                className="min-w-[160px]"
+                className="min-w-[160px] bg-primary hover:bg-primary/90"
                 onClick={() => navigate('/contact')}
               >
                 Me contacter
@@ -68,25 +68,25 @@ export default function IndexPage() {
               <Button
                 variant="outline"
                 size="lg"
-                className="min-w-[160px]"
-                onClick={() => navigate('/projects')}
+                className="min-w-[160px] border-primary text-primary hover:bg-primary/10"
+                onClick={() => navigate('/projets')}
               >
                 Voir mes projets
               </Button>
             </div>
             <div className="flex justify-center gap-6 pt-8">
               <a href="https://github.com" target="_blank" rel="noopener noreferrer">
-                <Button variant="ghost" size="icon">
+                <Button variant="ghost" size="icon" className="text-primary hover:bg-primary/10">
                   <Github className="w-5 h-5" />
                 </Button>
               </a>
               <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer">
-                <Button variant="ghost" size="icon">
+                <Button variant="ghost" size="icon" className="text-primary hover:bg-primary/10">
                   <LinkedinIcon className="w-5 h-5" />
                 </Button>
               </a>
               <a href="mailto:contact@example.com">
-                <Button variant="ghost" size="icon">
+                <Button variant="ghost" size="icon" className="text-primary hover:bg-primary/10">
                   <Mail className="w-5 h-5" />
                 </Button>
               </a>
@@ -103,7 +103,7 @@ export default function IndexPage() {
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
           >
-            <h2 className="text-3xl font-bold">Projets Récents</h2>
+            <h2 className="text-3xl font-bold text-primary">Projets Récents</h2>
             <p className="text-muted-foreground mt-2">Découvrez mes dernières réalisations</p>
           </motion.div>
 
@@ -116,7 +116,7 @@ export default function IndexPage() {
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
               >
-                <Card className="group overflow-hidden hover:shadow-lg transition-shadow duration-300">
+                <Card className="group overflow-hidden hover:shadow-lg transition-shadow duration-300 border-primary/10">
                   {project.image_url && (
                     <div className="aspect-video relative overflow-hidden">
                       <img
@@ -127,7 +127,7 @@ export default function IndexPage() {
                     </div>
                   )}
                   <CardContent className="p-6">
-                    <h3 className="text-xl font-semibold mb-2">{project.title}</h3>
+                    <h3 className="text-xl font-semibold mb-2 text-primary">{project.title}</h3>
                     <p className="text-muted-foreground line-clamp-2 mb-4">{project.description}</p>
                     <div className="flex flex-wrap gap-2">
                       {project.technologies?.map((tech, techIndex) => (
@@ -149,7 +149,8 @@ export default function IndexPage() {
             <Button
               variant="outline"
               size="lg"
-              onClick={() => navigate('/projects')}
+              className="border-primary text-primary hover:bg-primary/10"
+              onClick={() => navigate('/projets')}
             >
               Voir tous les projets
             </Button>
@@ -165,7 +166,7 @@ export default function IndexPage() {
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
           >
-            <h2 className="text-3xl font-bold">Compétences Principales</h2>
+            <h2 className="text-3xl font-bold text-primary">Compétences Principales</h2>
             <p className="text-muted-foreground mt-2">Les technologies que j'utilise au quotidien</p>
           </motion.div>
 
@@ -178,10 +179,10 @@ export default function IndexPage() {
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
               >
-                <Card>
+                <Card className="border-primary/10">
                   <CardContent className="p-6 space-y-4">
                     <div className="flex justify-between items-center">
-                      <h3 className="font-medium">{skill.name}</h3>
+                      <h3 className="font-medium text-primary">{skill.name}</h3>
                       <span className="text-sm text-muted-foreground">{skill.level}%</span>
                     </div>
                     <div className="h-2 bg-muted rounded-full overflow-hidden">
@@ -203,7 +204,8 @@ export default function IndexPage() {
             <Button
               variant="outline"
               size="lg"
-              onClick={() => navigate('/skills')}
+              className="border-primary text-primary hover:bg-primary/10"
+              onClick={() => navigate('/competences')}
             >
               Voir toutes mes compétences
             </Button>
