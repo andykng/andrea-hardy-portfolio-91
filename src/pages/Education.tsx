@@ -179,3 +179,37 @@ export default function EducationPage() {
                           <h3 className="font-semibold">{certification.title}</h3>
                           <p className="text-sm text-muted-foreground">{certification.issuer}</p>
                           {certification.date && (
+                            <div className="flex items-center mt-1 text-xs text-muted-foreground">
+                              <Calendar className="h-3 w-3 mr-1" />
+                              <span>{formatDate(certification.date)}</span>
+                              {certification.expiry_date && (
+                                <span className="ml-2">
+                                  (expire: {formatDate(certification.expiry_date)})
+                                </span>
+                              )}
+                            </div>
+                          )}
+                          {certification.credential_url && (
+                            <Button
+                              variant="link"
+                              size="sm"
+                              className="p-0 h-auto text-xs mt-1"
+                              onClick={() => window.open(certification.credential_url!, "_blank")}
+                            >
+                              <ExternalLink className="h-3 w-3 mr-1" />
+                              Voir le certificat
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+          </motion.div>
+        </div>
+      </div>
+    </Layout>
+  );
+}
