@@ -291,7 +291,7 @@ export default function IndexPage() {
                       />
                     </div>
                     <div className="mt-4 text-sm text-gray-500">
-                      {skill.description?.substring(0, 100)}{skill.description?.length > 100 ? '...' : ''}
+                      {skill.category} - {skill.name}
                     </div>
                   </CardContent>
                 </Card>
