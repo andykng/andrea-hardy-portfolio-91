@@ -12,14 +12,14 @@ export const Layout = ({ children }: LayoutProps) => {
     <div className="min-h-screen bg-gradient-to-br from-background via-accent/5 to-muted/10">
       <Header />
       <motion.main 
-        className="flex-grow pt-16 pb-16 md:pb-0 min-h-[calc(100vh-4rem)]"
+        className="flex-grow pt-14 md:pt-16 pb-20 md:pb-0 min-h-[calc(100vh-4rem)]"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
         {children}
       </motion.main>
-      <Footer />
+      <Footer className="hidden md:block" />
     </div>
   );
 }
