@@ -11,7 +11,8 @@ import {
   ArrowUpDown,
   BookText,
   Clock,
-  Tags
+  Tags,
+  Search
 } from "lucide-react";
 import { 
   Table,
@@ -21,13 +22,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useRealtimeSubscription } from "@/hooks/use-realtime-subscription";
-import { useRequireAuth } from "@/hooks/use-require-auth";
-import { BlogDialog } from "@/components/admin/blog/BlogDialog";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import {
@@ -40,20 +37,17 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-
-interface BlogPost {
-  id: string;
-  title: string;
-  status: "draft" | "published";
-  category: string;
-  published_at: string | null;
-  read_time: number;
-  views: number;
-  content: string;
-  excerpt?: string;
-  image_url?: string;
-  slug: string;
-}
+import { BlogDialog } from "@/components/admin/blog/BlogDialog";
+import { useRequireAuth } from "@/hooks/use-require-auth";
+import { useBlogPosts, BlogPost } from "@/hooks/use-blog-posts";
+import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function BlogAdminPage() {
   const { toast } = useToast();
@@ -62,26 +56,18 @@ export default function BlogAdminPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedPost, setSelectedPost] = useState<BlogPost | null>(null);
   const [mode, setMode] = useState<"create" | "edit">("create");
+  const [searchTerm, setSearchTerm] = useState("");
+  const navigate = useNavigate();
 
-  useRealtimeSubscription({
-    table: 'blog_posts',
-    queryKeys: ['admin-blog-posts', 'blog-posts'],
-    enabled: isAuthenticated
-  });
+  // Récupérer tous les posts en mode admin (incluant les brouillons)
+  const { data: posts = [], refetch, isLoading } = useBlogPosts({ adminMode: true });
 
-  const { data: posts = [], refetch } = useQuery({
-    queryKey: ['admin-blog-posts'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('blog_posts')
-        .select('*')
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      return data as BlogPost[];
-    },
-    enabled: isAuthenticated
-  });
+  // Filtrer les posts selon le terme de recherche
+  const filteredPosts = posts.filter(post => 
+    post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    post.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (post.category && post.category.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
 
   const handleCreate = async (formData: Partial<BlogPost>) => {
     // Vérification que les champs requis sont présents
@@ -129,6 +115,7 @@ export default function BlogAdminPage() {
       title: "Succès",
       description: "Article créé avec succès",
     });
+    setDialogOpen(false);
     refetch();
   };
 
@@ -160,6 +147,7 @@ export default function BlogAdminPage() {
       title: "Succès",
       description: "Article modifié avec succès",
     });
+    setDialogOpen(false);
     refetch();
   };
 
@@ -200,6 +188,57 @@ export default function BlogAdminPage() {
   const openDeleteDialog = (post: BlogPost) => {
     setSelectedPost(post);
     setDeleteDialogOpen(true);
+  };
+
+  const publishPost = async (post: BlogPost) => {
+    if (post.status === 'published') return;
+    
+    const { error } = await supabase
+      .from('blog_posts')
+      .update({ 
+        status: 'published',
+        published_at: new Date().toISOString()
+      })
+      .eq('id', post.id);
+
+    if (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de publier l'article",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Succès",
+        description: "Article publié avec succès",
+      });
+      refetch();
+    }
+  };
+
+  const unpublishPost = async (post: BlogPost) => {
+    if (post.status === 'draft') return;
+    
+    const { error } = await supabase
+      .from('blog_posts')
+      .update({ 
+        status: 'draft'
+      })
+      .eq('id', post.id);
+
+    if (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de mettre l'article en brouillon",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Succès",
+        description: "Article mis en brouillon avec succès",
+      });
+      refetch();
+    }
   };
 
   if (!isAuthenticated) {
@@ -266,79 +305,118 @@ export default function BlogAdminPage() {
             <div className="flex items-center justify-between">
               <CardTitle>Articles</CardTitle>
               <div className="flex items-center gap-4">
-                <Input 
-                  placeholder="Rechercher un article..." 
-                  className="w-64"
-                />
-                <Button variant="outline" size="sm">
-                  <Tags className="w-4 h-4 mr-2" />
-                  Filtrer
-                </Button>
-                <Button variant="outline" size="sm">
-                  <ArrowUpDown className="w-4 h-4 mr-2" />
-                  Trier
-                </Button>
+                <div className="relative w-64">
+                  <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input 
+                    placeholder="Rechercher un article..." 
+                    className="pl-8"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
               </div>
             </div>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Titre</TableHead>
-                  <TableHead>Catégorie</TableHead>
-                  <TableHead>Statut</TableHead>
-                  <TableHead>Date de publication</TableHead>
-                  <TableHead>Temps de lecture</TableHead>
-                  <TableHead>Vues</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {posts.map((post) => (
-                  <TableRow key={post.id}>
-                    <TableCell className="font-medium">{post.title}</TableCell>
-                    <TableCell>{post.category}</TableCell>
-                    <TableCell>
-                      <span className={`px-2 py-1 rounded-full text-xs ${
-                        post.status === "published" 
-                          ? "bg-green-100 text-green-700" 
-                          : "bg-yellow-100 text-yellow-700"
-                      }`}>
-                        {post.status === "published" ? "Publié" : "Brouillon"}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      {post.published_at ? format(new Date(post.published_at), 'dd/MM/yyyy', { locale: fr }) : '-'}
-                    </TableCell>
-                    <TableCell>{post.read_time} min</TableCell>
-                    <TableCell>{post.views || 0}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <Button variant="ghost" size="sm">
-                          <Eye className="w-4 h-4" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={() => openEditDialog(post)}
-                        >
-                          <Pencil className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-red-600"
-                          onClick={() => openDeleteDialog(post)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
+            {isLoading ? (
+              <div className="flex justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Titre</TableHead>
+                    <TableHead>Catégorie</TableHead>
+                    <TableHead>Statut</TableHead>
+                    <TableHead>Date de publication</TableHead>
+                    <TableHead>Temps de lecture</TableHead>
+                    <TableHead>Vues</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {filteredPosts.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                        {searchTerm 
+                          ? "Aucun article ne correspond à votre recherche." 
+                          : "Aucun article n'a été créé pour le moment."}
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredPosts.map((post) => (
+                      <TableRow key={post.id}>
+                        <TableCell className="font-medium">{post.title}</TableCell>
+                        <TableCell>
+                          {post.category ? (
+                            <Badge variant="outline">{post.category}</Badge>
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={post.status === "published" 
+                            ? "bg-green-100 text-green-700 hover:bg-green-200" 
+                            : "bg-yellow-100 text-yellow-700 hover:bg-yellow-200"}>
+                            {post.status === "published" ? "Publié" : "Brouillon"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {post.published_at 
+                            ? format(new Date(post.published_at), 'dd/MM/yyyy', { locale: fr }) 
+                            : <span className="text-muted-foreground">-</span>}
+                        </TableCell>
+                        <TableCell>
+                          {post.read_time ? `${post.read_time} min` : <span className="text-muted-foreground">-</span>}
+                        </TableCell>
+                        <TableCell>{post.views || 0}</TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm">
+                                  <Eye className="w-4 h-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => navigate(`/blog/${post.slug}`)}>
+                                  Voir
+                                </DropdownMenuItem>
+                                {post.status === 'draft' ? (
+                                  <DropdownMenuItem onClick={() => publishPost(post)}>
+                                    Publier
+                                  </DropdownMenuItem>
+                                ) : (
+                                  <DropdownMenuItem onClick={() => unpublishPost(post)}>
+                                    Dépublier
+                                  </DropdownMenuItem>
+                                )}
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => openEditDialog(post)}
+                            >
+                              <Pencil className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-red-600"
+                              onClick={() => openDeleteDialog(post)}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            )}
           </CardContent>
         </Card>
 

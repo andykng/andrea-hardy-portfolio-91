@@ -1,45 +1,23 @@
 
 import { Layout } from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BookText, Clock, Calendar, User } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { BookText, Clock, Calendar, User, Tag } from "lucide-react";
 import { motion } from "framer-motion";
-import { useRealtimeSubscription } from "@/hooks/use-realtime-subscription";
-
-interface BlogPost {
-  id: string;
-  title: string;
-  excerpt: string;
-  content: string;
-  author: string;
-  category: string;
-  image_url: string | null;
-  published_at: string | null;
-  created_at: string;  // Ajout de la propriété manquante
-  read_time: number;
-  status: "draft" | "published";
-}
+import { useBlogPosts, BlogPost } from "@/hooks/use-blog-posts";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 export default function BlogPage() {
-  useRealtimeSubscription({
-    table: 'blog_posts',
-    queryKeys: ['blog-posts']
-  });
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const { data: posts, isLoading } = useBlogPosts({ category: selectedCategory || undefined });
+  
+  // Extraire les catégories uniques des articles
+  const categories = [...new Set((posts || []).map(post => post.category))].filter(Boolean) as string[];
 
-  const { data: posts, isLoading } = useQuery({
-    queryKey: ['blog-posts'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('blog_posts')
-        .select('*')
-        .eq('status', 'published')
-        .order('published_at', { ascending: false });
-      
-      if (error) throw error;
-      return data as BlogPost[];
-    }
-  });
+  const handleCategoryClick = (category: string | null) => {
+    setSelectedCategory(category === selectedCategory ? null : category);
+  };
 
   return (
     <Layout>
@@ -56,6 +34,37 @@ export default function BlogPage() {
               Découvrez mes articles sur le développement web, la cybersécurité et les dernières technologies
             </p>
           </motion.div>
+
+          {/* Filtrage par catégorie */}
+          {categories.length > 0 && (
+            <motion.div 
+              className="flex flex-wrap justify-center gap-2"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+            >
+              <Button 
+                variant={selectedCategory === null ? "default" : "outline"}
+                size="sm"
+                onClick={() => handleCategoryClick(null)}
+                className="rounded-full"
+              >
+                Tous
+              </Button>
+              {categories.map(category => (
+                <Button
+                  key={category}
+                  variant={selectedCategory === category ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => handleCategoryClick(category)}
+                  className="rounded-full"
+                >
+                  <Tag className="w-3 h-3 mr-2" />
+                  {category}
+                </Button>
+              ))}
+            </motion.div>
+          )}
 
           {isLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -95,19 +104,23 @@ export default function BlogPage() {
                           alt={post.title}
                           className="object-cover w-full h-full"
                         />
-                        <div className="absolute top-4 right-4">
-                          <span className="px-3 py-1 bg-white/90 backdrop-blur-sm rounded-full text-sm font-medium">
-                            {post.category}
-                          </span>
-                        </div>
+                        {post.category && (
+                          <div className="absolute top-4 right-4">
+                            <Badge variant="secondary" className="backdrop-blur-sm">
+                              {post.category}
+                            </Badge>
+                          </div>
+                        )}
                       </div>
                     ) : (
                       <div className="aspect-video bg-gradient-to-br from-primary/5 to-muted relative">
-                        <div className="absolute top-4 right-4">
-                          <span className="px-3 py-1 bg-white/90 backdrop-blur-sm rounded-full text-sm font-medium">
-                            {post.category}
-                          </span>
-                        </div>
+                        {post.category && (
+                          <div className="absolute top-4 right-4">
+                            <Badge variant="secondary" className="backdrop-blur-sm">
+                              {post.category}
+                            </Badge>
+                          </div>
+                        )}
                       </div>
                     )}
                     <CardHeader>
@@ -125,10 +138,12 @@ export default function BlogPage() {
                             <User className="w-4 h-4" />
                             {post.author || "Admin"}
                           </span>
-                          <span className="flex items-center gap-1">
-                            <Clock className="w-4 h-4" />
-                            {post.read_time} min
-                          </span>
+                          {post.read_time && (
+                            <span className="flex items-center gap-1">
+                              <Clock className="w-4 h-4" />
+                              {post.read_time} min
+                            </span>
+                          )}
                         </div>
                         <span className="flex items-center gap-1">
                           <Calendar className="w-4 h-4" />
@@ -156,8 +171,20 @@ export default function BlogPage() {
               <BookText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-xl font-medium">Aucun article pour le moment</h3>
               <p className="text-muted-foreground mt-2">
-                Les articles seront bientôt disponibles.
+                {selectedCategory 
+                  ? `Aucun article trouvé dans la catégorie "${selectedCategory}".`
+                  : "Les articles seront bientôt disponibles."
+                }
               </p>
+              {selectedCategory && (
+                <Button 
+                  variant="outline" 
+                  className="mt-4"
+                  onClick={() => setSelectedCategory(null)}
+                >
+                  Voir tous les articles
+                </Button>
+              )}
             </motion.div>
           )}
         </div>
