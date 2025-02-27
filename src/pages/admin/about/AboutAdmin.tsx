@@ -3,7 +3,7 @@ import { AdminLayout } from "@/components/admin/AdminLayout";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Image } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -27,6 +27,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function AboutAdminPage() {
   const { toast } = useToast();
@@ -141,7 +142,7 @@ export default function AboutAdminPage() {
   return (
     <AdminLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <h1 className="text-3xl font-bold">Gestion de la page À propos</h1>
           <Button onClick={openCreateDialog}>
             <Plus className="w-4 h-4 mr-2" />
@@ -149,46 +150,115 @@ export default function AboutAdminPage() {
           </Button>
         </div>
 
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Ordre</TableHead>
-                <TableHead>Titre</TableHead>
-                <TableHead>Section</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
+        {isLoading ? (
+          <div className="flex justify-center p-8">
+            <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
+          </div>
+        ) : (
+          <>
+            {/* Version Desktop */}
+            <div className="hidden md:block rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Ordre</TableHead>
+                    <TableHead>Titre</TableHead>
+                    <TableHead>Section</TableHead>
+                    <TableHead>Image</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {sections?.map((section) => (
+                    <TableRow key={section.id}>
+                      <TableCell>{section.order_index}</TableCell>
+                      <TableCell className="font-medium">{section.title}</TableCell>
+                      <TableCell>{section.section}</TableCell>
+                      <TableCell>
+                        {section.image_url ? (
+                          <div className="w-10 h-10 relative">
+                            <img 
+                              src={section.image_url} 
+                              alt={section.title} 
+                              className="w-full h-full object-cover rounded-md"
+                            />
+                          </div>
+                        ) : (
+                          <span className="text-gray-400">-</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => openEditDialog(section)}
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-red-600"
+                            onClick={() => openDeleteDialog(section)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+
+            {/* Version Mobile */}
+            <div className="md:hidden grid grid-cols-1 gap-4">
               {sections?.map((section) => (
-                <TableRow key={section.id}>
-                  <TableCell>{section.order_index}</TableCell>
-                  <TableCell className="font-medium">{section.title}</TableCell>
-                  <TableCell>{section.section}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => openEditDialog(section)}
-                      >
-                        <Pencil className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-red-600"
-                        onClick={() => openDeleteDialog(section)}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                <Card key={section.id}>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg flex justify-between items-center">
+                      <span>{section.title}</span>
+                      <span className="text-sm font-normal text-gray-500">Ordre: {section.order_index}</span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-500">Section: {section.section}</span>
+                        {section.image_url && (
+                          <div className="flex items-center gap-1">
+                            <Image className="w-4 h-4 text-gray-500" />
+                            <span className="text-gray-500 text-sm">Image ajoutée</span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex justify-end gap-2 pt-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openEditDialog(section)}
+                        >
+                          <Pencil className="w-4 h-4 mr-1" />
+                          Modifier
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-red-600"
+                          onClick={() => openDeleteDialog(section)}
+                        >
+                          <Trash2 className="w-4 h-4 mr-1" />
+                          Supprimer
+                        </Button>
+                      </div>
                     </div>
-                  </TableCell>
-                </TableRow>
+                  </CardContent>
+                </Card>
               ))}
-            </TableBody>
-          </Table>
-        </div>
+            </div>
+          </>
+        )}
 
         <AboutSectionDialog
           open={dialogOpen}
@@ -199,7 +269,7 @@ export default function AboutAdminPage() {
         />
 
         <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-          <AlertDialogContent>
+          <AlertDialogContent className="max-w-[90vw] sm:max.w-lg">
             <AlertDialogHeader>
               <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
               <AlertDialogDescription>
@@ -207,7 +277,7 @@ export default function AboutAdminPage() {
                 et son contenu.
               </AlertDialogDescription>
             </AlertDialogHeader>
-            <AlertDialogFooter>
+            <AlertDialogFooter className="flex-col sm:flex-row gap-2">
               <AlertDialogCancel>Annuler</AlertDialogCancel>
               <AlertDialogAction
                 className="bg-red-600 hover:bg-red-700"

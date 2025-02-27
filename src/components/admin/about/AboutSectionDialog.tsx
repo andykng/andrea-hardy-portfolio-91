@@ -88,7 +88,7 @@ export function AboutSectionDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[625px]">
+      <DialogContent className="sm:max-w-[625px] max-w-[95vw] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {mode === "create" ? "Ajouter une section" : "Modifier la section"}
@@ -137,6 +137,15 @@ export function AboutSectionDialog({
                 onChange={handleImageUpload}
                 isUploading={isUploading}
               />
+              {formData.image_url && (
+                <div className="mt-2">
+                  <img 
+                    src={formData.image_url} 
+                    alt="Aperçu" 
+                    className="max-h-40 rounded-md object-contain"
+                  />
+                </div>
+              )}
             </div>
 
             <div className="grid gap-2">

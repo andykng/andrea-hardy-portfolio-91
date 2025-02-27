@@ -36,6 +36,7 @@ export default function AboutPage() {
       <div 
         className="container mx-auto px-4 py-12 relative"
         ref={containerRef}
+        style={{ position: 'relative' }} // Fix for framer-motion warning
       >
         {/* Floating logo animation */}
         <motion.div
@@ -128,6 +129,15 @@ export default function AboutPage() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
+                    {section.image_url && (
+                      <div className="mb-4">
+                        <img 
+                          src={section.image_url} 
+                          alt={section.title} 
+                          className="w-full h-auto rounded-lg shadow-md" 
+                        />
+                      </div>
+                    )}
                     <div 
                       className="prose prose-lg max-w-none"
                       dangerouslySetInnerHTML={{ __html: section.content }} 
