@@ -1,211 +1,345 @@
 
 import { AdminLayout } from "@/components/admin/AdminLayout";
-import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
-import { useRealtimeSubscription } from "@/hooks/use-realtime-subscription";
+import { useProjects, Project } from "@/hooks/use-projects";
 import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { 
+  Card, 
+  CardContent, 
+  CardHeader, 
+  CardTitle, 
+  CardDescription, 
+  CardFooter 
+} from "@/components/ui/card";
+import { 
+  FolderKanban, 
+  Plus, 
+  Search, 
+  Github, 
+  ExternalLink, 
+  Edit, 
+  Trash, 
+  Image, 
+  Code,
+  X
+} from "lucide-react";
 import { ProjectDialog } from "@/components/admin/projects/ProjectDialog";
-import { DeleteConfirmation } from "@/components/admin/DeleteConfirmation";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { supabase } from "@/integrations/supabase/client";
+import { Badge } from "@/components/ui/badge";
+import { motion } from "framer-motion";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
-interface Project {
-  id: string;
-  title: string;
-  description: string;
-  image_url?: string;
-  github_url?: string;
-  demo_url?: string;
-  technologies: string[];
-}
-
-export default function ProjectsAdminPage() {
+export default function ProjectsAdmin() {
   const { toast } = useToast();
+  const { data: projects = [], refetch, isLoading } = useProjects({ adminMode: true });
+  const [searchTerm, setSearchTerm] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [mode, setMode] = useState<"create" | "edit">("create");
 
-  useRealtimeSubscription({
-    table: 'projects',
-    queryKeys: ['admin-projects', 'projects']
-  });
+  // Filtrer les projets selon le terme de recherche
+  const filteredProjects = projects.filter(project => 
+    project.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (project.description && project.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (project.technologies && project.technologies.some(tech => 
+      tech.toLowerCase().includes(searchTerm.toLowerCase())
+    ))
+  );
 
-  const { data: projects, refetch } = useQuery({
-    queryKey: ['admin-projects'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('projects')
-        .select('*')
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      return data as Project[];
-    }
-  });
-
-  const handleCreate = async (formData: Omit<Project, 'id'>) => {
-    const { error } = await supabase
-      .from('projects')
-      .insert([formData]);
-
-    if (error) {
-      toast({
-        title: "Erreur",
-        description: "Impossible de créer le projet",
-        variant: "destructive",
-      });
-      throw error;
-    }
-
-    toast({
-      title: "Succès",
-      description: "Projet créé avec succès",
-    });
-    refetch();
+  const openCreateDialog = () => {
+    setMode("create");
+    setSelectedProject(null);
+    setDialogOpen(true);
   };
 
-  const handleUpdate = async (formData: Partial<Project>) => {
-    if (!selectedProject) return;
+  const openEditDialog = (project: Project) => {
+    setMode("edit");
+    setSelectedProject(project);
+    setDialogOpen(true);
+  };
 
-    const { error } = await supabase
-      .from('projects')
-      .update(formData)
-      .eq('id', selectedProject.id);
+  const openDeleteDialog = (project: Project) => {
+    setSelectedProject(project);
+    setDeleteDialogOpen(true);
+  };
 
-    if (error) {
+  const handleCreate = async (data: Partial<Project>) => {
+    try {
+      const { error } = await supabase
+        .from('projects')
+        .insert([data]);
+
+      if (error) throw error;
+
+      toast({
+        title: "Projet créé avec succès",
+        description: "Le projet a été ajouté à votre portfolio",
+      });
+      refetch();
+      setDialogOpen(false);
+    } catch (error: any) {
       toast({
         title: "Erreur",
-        description: "Impossible de modifier le projet",
+        description: error.message,
         variant: "destructive",
       });
-      throw error;
     }
+  };
 
-    toast({
-      title: "Succès",
-      description: "Projet modifié avec succès",
-    });
-    refetch();
+  const handleUpdate = async (data: Partial<Project>) => {
+    if (!selectedProject) return;
+
+    try {
+      const { error } = await supabase
+        .from('projects')
+        .update(data)
+        .eq('id', selectedProject.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Projet mis à jour",
+        description: "Les modifications ont été enregistrées",
+      });
+      refetch();
+      setDialogOpen(false);
+    } catch (error: any) {
+      toast({
+        title: "Erreur",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
   const handleDelete = async () => {
     if (!selectedProject) return;
 
-    const { error } = await supabase
-      .from('projects')
-      .delete()
-      .eq('id', selectedProject.id);
+    try {
+      const { error } = await supabase
+        .from('projects')
+        .delete()
+        .eq('id', selectedProject.id);
 
-    if (error) {
+      if (error) throw error;
+
       toast({
-        title: "Erreur",
-        description: "Impossible de supprimer le projet",
-        variant: "destructive",
-      });
-    } else {
-      toast({
-        title: "Succès",
-        description: "Projet supprimé avec succès",
+        title: "Projet supprimé",
+        description: "Le projet a été retiré de votre portfolio",
       });
       refetch();
+      setDeleteDialogOpen(false);
+    } catch (error: any) {
+      toast({
+        title: "Erreur",
+        description: error.message,
+        variant: "destructive",
+      });
     }
-    setDeleteDialogOpen(false);
   };
 
   return (
     <AdminLayout>
       <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">Gestion des Projets</h1>
-            <p className="text-gray-500 mt-1">Gérez vos projets et réalisations</p>
+            <p className="text-muted-foreground mt-1">
+              Ajoutez et gérez les projets affichés dans votre portfolio
+            </p>
           </div>
-          <Button onClick={() => {
-            setMode("create");
-            setSelectedProject(null);
-            setDialogOpen(true);
-          }}>
-            <Plus className="w-4 h-4 mr-2" />
-            Nouveau Projet
+          <Button onClick={openCreateDialog} size="lg">
+            <Plus className="mr-2 h-4 w-4" />
+            Ajouter un projet
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {projects?.map((project) => (
-            <Card key={project.id} className="overflow-hidden">
-              {project.image_url && (
-                <div className="aspect-video relative overflow-hidden">
-                  <img
-                    src={project.image_url}
-                    alt={project.title}
-                    className="object-cover w-full h-full"
-                  />
-                </div>
-              )}
-              <CardHeader>
-                <CardTitle>{project.title}</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-sm text-gray-500 line-clamp-2">{project.description}</p>
-                <div className="flex flex-wrap gap-2">
-                  {project.technologies.map((tech, index) => (
-                    <span
-                      key={index}
-                      className="px-2 py-1 text-xs rounded-full bg-primary/10 text-primary"
-                    >
-                      {tech}
-                    </span>
-                  ))}
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex-1"
-                    onClick={() => {
-                      setMode("edit");
-                      setSelectedProject(project);
-                      setDialogOpen(true);
-                    }}
-                  >
-                    Modifier
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    className="flex-1"
-                    onClick={() => {
-                      setSelectedProject(project);
-                      setDeleteDialogOpen(true);
-                    }}
-                  >
-                    Supprimer
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+        <div className="flex items-center gap-4">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Rechercher un projet..."
+              className="pl-9"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <div className="text-muted-foreground">
+            {filteredProjects.length} projet{filteredProjects.length !== 1 ? 's' : ''}
+          </div>
         </div>
 
-        <ProjectDialog
-          open={dialogOpen}
-          onOpenChange={setDialogOpen}
-          onSubmit={mode === "create" ? handleCreate : handleUpdate}
-          defaultValues={selectedProject ?? undefined}
-          mode={mode}
-        />
-
-        <DeleteConfirmation
-          open={deleteDialogOpen}
-          onOpenChange={setDeleteDialogOpen}
-          onConfirm={handleDelete}
-          title="Supprimer le projet ?"
-          description="Cette action est irréversible. Êtes-vous sûr de vouloir supprimer ce projet ?"
-        />
+        {isLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3].map((i) => (
+              <Card key={i} className="overflow-hidden">
+                <div className="aspect-video bg-muted animate-pulse" />
+                <CardHeader>
+                  <div className="h-6 bg-muted rounded animate-pulse" />
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <div className="h-4 bg-muted rounded animate-pulse" />
+                    <div className="h-4 bg-muted rounded animate-pulse w-2/3" />
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : filteredProjects.length === 0 ? (
+          <Card className="p-8 text-center">
+            <div className="mx-auto w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
+              <FolderKanban className="h-8 w-8 text-muted-foreground" />
+            </div>
+            <h3 className="text-xl font-semibold mb-2">Aucun projet trouvé</h3>
+            <p className="text-muted-foreground max-w-md mx-auto mb-6">
+              {searchTerm 
+                ? "Aucun projet ne correspond à votre recherche." 
+                : "Commencez par ajouter votre premier projet pour le présenter dans votre portfolio."}
+            </p>
+            {searchTerm ? (
+              <Button variant="outline" onClick={() => setSearchTerm("")}>
+                Effacer la recherche
+              </Button>
+            ) : (
+              <Button onClick={openCreateDialog}>
+                <Plus className="mr-2 h-4 w-4" />
+                Ajouter un projet
+              </Button>
+            )}
+          </Card>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredProjects.map((project, i) => (
+              <motion.div
+                key={project.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.05 }}
+              >
+                <Card className="group overflow-hidden flex flex-col h-full hover:shadow-md transition-shadow">
+                  <div className="relative aspect-video overflow-hidden bg-muted">
+                    {project.image_url ? (
+                      <img 
+                        src={project.image_url} 
+                        alt={project.title} 
+                        className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                      />
+                    ) : (
+                      <div className="flex items-center justify-center w-full h-full text-muted-foreground">
+                        <Image className="h-8 w-8" />
+                      </div>
+                    )}
+                    <div className="absolute top-2 right-2 flex space-x-1">
+                      <Button
+                        size="icon"
+                        variant="secondary"
+                        className="h-8 w-8 bg-white/80 backdrop-blur-sm hover:bg-white"
+                        onClick={() => openEditDialog(project)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="secondary"
+                        className="h-8 w-8 bg-white/80 backdrop-blur-sm hover:bg-white/90 hover:text-red-600"
+                        onClick={() => openDeleteDialog(project)}
+                      >
+                        <Trash className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      {project.title}
+                    </CardTitle>
+                    {project.description && (
+                      <CardDescription className="line-clamp-2">
+                        {project.description}
+                      </CardDescription>
+                    )}
+                  </CardHeader>
+                  <CardContent className="flex-grow">
+                    {project.technologies && project.technologies.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {project.technologies.map((tech, i) => (
+                          <Badge key={i} variant="secondary" className="bg-secondary/20">
+                            {tech}
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                  <CardFooter className="flex justify-between gap-4 pt-2">
+                    <div className="flex space-x-2">
+                      {project.github_url && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="gap-1"
+                          onClick={() => window.open(project.github_url, "_blank")}
+                        >
+                          <Github className="h-4 w-4" />
+                        </Button>
+                      )}
+                      {project.demo_url && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="gap-1"
+                          onClick={() => window.open(project.demo_url, "_blank")}
+                        >
+                          <ExternalLink className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  </CardFooter>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+        )}
       </div>
+
+      <ProjectDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        mode={mode}
+        project={selectedProject}
+        onSubmit={mode === "create" ? handleCreate : handleUpdate}
+      />
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Cette action est irréversible. Cela supprimera définitivement ce projet de votre portfolio.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 hover:bg-red-700"
+              onClick={handleDelete}
+            >
+              Supprimer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AdminLayout>
   );
 }
