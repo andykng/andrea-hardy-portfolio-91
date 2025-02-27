@@ -41,6 +41,8 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <Router>
         <Routes>
+          {/* Public Routes */}
+          <Route index element={<IndexPage />} />
           <Route path="/" element={<IndexPage />} />
           <Route path="/a-propos" element={<AboutPage />} />
           <Route path="/competences" element={<SkillsPage />} />
@@ -52,16 +54,19 @@ function App() {
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/login" element={<LoginPage />} />
 
-          {/* Admin routes */}
-          <Route path="/admin" element={<DashboardPage />} />
-          <Route path="/admin/a-propos" element={<AboutAdmin />} />
-          <Route path="/admin/blog" element={<BlogAdmin />} />
-          <Route path="/admin/formation" element={<EducationAdmin />} />
-          <Route path="/admin/experiences" element={<ExperiencesAdmin />} />
-          <Route path="/admin/projets" element={<ProjectsAdmin />} />
-          <Route path="/admin/competences" element={<SkillsAdmin />} />
-          <Route path="/admin/veille-techno" element={<TechWatchAdmin />} />
+          {/* Admin Routes - Nested under /admin */}
+          <Route path="/admin">
+            <Route index element={<DashboardPage />} />
+            <Route path="a-propos" element={<AboutAdmin />} />
+            <Route path="blog" element={<BlogAdmin />} />
+            <Route path="formation" element={<EducationAdmin />} />
+            <Route path="experiences" element={<ExperiencesAdmin />} />
+            <Route path="projets" element={<ProjectsAdmin />} />
+            <Route path="competences" element={<SkillsAdmin />} />
+            <Route path="veille-techno" element={<TechWatchAdmin />} />
+          </Route>
 
+          {/* 404 Route */}
           <Route path="*" element={<NotFound />} />
         </Routes>
         <Toaster />
