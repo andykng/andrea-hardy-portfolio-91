@@ -67,14 +67,12 @@ export function CertificationDialog({
       const fileExt = logoFile.name.split('.').pop();
       const filePath = `certifications/${Date.now()}.${fileExt}`;
       
+      // Suppression de onUploadProgress qui n'est pas supporté
       const { error: uploadError, data } = await supabase.storage
         .from('images')
         .upload(filePath, logoFile, {
           cacheControl: '3600',
-          upsert: false,
-          onUploadProgress: (progress) => {
-            setUploadProgress((progress.loaded / progress.total) * 100);
-          },
+          upsert: false
         });
 
       if (uploadError) throw uploadError;

@@ -90,7 +90,7 @@ export default function EducationAdmin() {
     try {
       const { error } = await supabase
         .from('education')
-        .insert([data]);
+        .insert(data);
 
       if (error) throw error;
 
@@ -184,7 +184,7 @@ export default function EducationAdmin() {
     try {
       const { error } = await supabase
         .from('certifications')
-        .insert([data]);
+        .insert(data);
 
       if (error) throw error;
 

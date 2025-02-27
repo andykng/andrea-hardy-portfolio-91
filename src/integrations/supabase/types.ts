@@ -93,6 +93,81 @@ export type Database = {
         }
         Relationships: []
       }
+      certifications: {
+        Row: {
+          created_at: string
+          credential_url: string | null
+          date: string | null
+          expiry_date: string | null
+          id: string
+          issuer: string
+          logo_url: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          credential_url?: string | null
+          date?: string | null
+          expiry_date?: string | null
+          id?: string
+          issuer: string
+          logo_url?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          credential_url?: string | null
+          date?: string | null
+          expiry_date?: string | null
+          id?: string
+          issuer?: string
+          logo_url?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      education: {
+        Row: {
+          created_at: string
+          degree: string | null
+          description: string | null
+          end_date: string | null
+          id: string
+          institution: string
+          logo_url: string | null
+          start_date: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          degree?: string | null
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          institution: string
+          logo_url?: string | null
+          start_date: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          degree?: string | null
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          institution?: string
+          logo_url?: string | null
+          start_date?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       experiences: {
         Row: {
           company: string

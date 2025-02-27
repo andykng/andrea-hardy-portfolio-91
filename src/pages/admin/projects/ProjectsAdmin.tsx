@@ -79,7 +79,7 @@ export default function ProjectsAdmin() {
     try {
       const { error } = await supabase
         .from('projects')
-        .insert([data]);
+        .insert(data);
 
       if (error) throw error;
 
