@@ -40,6 +40,15 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
+type ProjectInsert = {
+  title: string;
+  description?: string | null;
+  image_url?: string | null;
+  technologies?: string[] | null;
+  github_url?: string | null;
+  demo_url?: string | null;
+}
+
 export default function ProjectsAdmin() {
   const { toast } = useToast();
   const { data: projects = [], refetch, isLoading } = useProjects({ adminMode: true });
@@ -77,9 +86,24 @@ export default function ProjectsAdmin() {
 
   const handleCreate = async (data: Partial<Project>) => {
     try {
+      // Vérification des champs obligatoires
+      if (!data.title) {
+        throw new Error("Le titre du projet est obligatoire");
+      }
+
+      // Cast to the correct type for insertion
+      const projectData: ProjectInsert = {
+        title: data.title,
+        description: data.description || null,
+        image_url: data.image_url || null,
+        technologies: data.technologies || null,
+        github_url: data.github_url || null,
+        demo_url: data.demo_url || null
+      };
+
       const { error } = await supabase
         .from('projects')
-        .insert(data);
+        .insert(projectData);
 
       if (error) throw error;
 

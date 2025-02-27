@@ -41,6 +41,25 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
 
+type EducationInsert = {
+  title: string;
+  institution: string;
+  start_date: string;
+  description?: string | null;
+  logo_url?: string | null;
+  end_date?: string | null;
+  degree?: string | null;
+}
+
+type CertificationInsert = {
+  title: string;
+  issuer: string;
+  date?: string | null;
+  expiry_date?: string | null;
+  credential_url?: string | null;
+  logo_url?: string | null;
+}
+
 export default function EducationAdmin() {
   const { toast } = useToast();
   const { data: educations = [], refetch: refetchEducation, isLoading: isEducationLoading } = useEducation({ adminMode: true });
@@ -88,9 +107,25 @@ export default function EducationAdmin() {
 
   const handleCreateEducation = async (data: Partial<Education>) => {
     try {
+      // Vérification des champs obligatoires
+      if (!data.title || !data.institution || !data.start_date) {
+        throw new Error("Les champs titre, institution et date de début sont obligatoires");
+      }
+
+      // Cast to the correct type for insertion
+      const educationData: EducationInsert = {
+        title: data.title,
+        institution: data.institution,
+        start_date: data.start_date,
+        description: data.description || null,
+        logo_url: data.logo_url || null,
+        end_date: data.end_date || null,
+        degree: data.degree || null
+      };
+
       const { error } = await supabase
         .from('education')
-        .insert(data);
+        .insert(educationData);
 
       if (error) throw error;
 
@@ -182,9 +217,24 @@ export default function EducationAdmin() {
 
   const handleCreateCertification = async (data: Partial<Certification>) => {
     try {
+      // Vérification des champs obligatoires
+      if (!data.title || !data.issuer) {
+        throw new Error("Les champs titre et émetteur sont obligatoires");
+      }
+
+      // Cast to the correct type for insertion
+      const certificationData: CertificationInsert = {
+        title: data.title,
+        issuer: data.issuer,
+        date: data.date || null,
+        expiry_date: data.expiry_date || null,
+        credential_url: data.credential_url || null,
+        logo_url: data.logo_url || null
+      };
+
       const { error } = await supabase
         .from('certifications')
-        .insert(data);
+        .insert(certificationData);
 
       if (error) throw error;
 
