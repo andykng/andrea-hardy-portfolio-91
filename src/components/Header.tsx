@@ -18,24 +18,61 @@ import {
 import { Button } from "./ui/button";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
 
 export const Header = () => {
   const { isAuthenticated } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isLogoHovered, setIsLogoHovered] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollPosition = window.scrollY;
+      setIsScrolled(scrollPosition > 10);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   return (
     <>
       {/* Desktop Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 border-b backdrop-blur-md shadow-sm hidden md:block">
+      <header className={cn(
+        "fixed top-0 left-0 right-0 z-50 bg-white/95 border-b backdrop-blur-md transition-all duration-300 hidden md:block",
+        isScrolled ? "shadow-md py-1" : "shadow-sm py-2"
+      )}>
         <nav className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             <NavLink 
               to="/" 
-              className="text-lg font-semibold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent"
+              className="flex items-center"
+              onMouseEnter={() => setIsLogoHovered(true)}
+              onMouseLeave={() => setIsLogoHovered(false)}
             >
-              Andrea Hardy
+              <div className="w-12 h-12 relative overflow-hidden mr-3">
+                <img 
+                  src="https://res.cloudinary.com/drbfimvy9/image/upload/v1740674530/Logo_500x500_px_1_chmwqa.gif" 
+                  alt="Logo animé" 
+                  className={cn(
+                    "absolute top-0 left-0 w-full h-full object-contain transition-opacity duration-500",
+                    isLogoHovered ? "opacity-100" : "opacity-0"
+                  )}
+                />
+                <img 
+                  src="https://res.cloudinary.com/drbfimvy9/image/upload/v1740674528/Logo_500x500_px_3_qaqvgc.png" 
+                  alt="Logo statique" 
+                  className={cn(
+                    "absolute top-0 left-0 w-full h-full object-contain transition-opacity duration-500",
+                    isLogoHovered ? "opacity-0" : "opacity-100"
+                  )}
+                />
+              </div>
+              <span className="text-lg font-semibold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+                Andrea Hardy
+              </span>
             </NavLink>
             
             <div className="flex items-center gap-6">
@@ -151,13 +188,25 @@ export const Header = () => {
       </header>
 
       {/* Mobile Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 border-b shadow-sm md:hidden px-4">
+      <header className={cn(
+        "fixed top-0 left-0 right-0 z-50 bg-white/95 border-b transition-all duration-300 md:hidden px-4",
+        isScrolled ? "shadow-md" : "shadow-sm"
+      )}>
         <div className="flex items-center justify-between h-14">
           <NavLink 
             to="/" 
-            className="text-lg font-semibold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent"
+            className="flex items-center"
           >
-            Andrea Hardy
+            <div className="w-10 h-10 relative overflow-hidden mr-2">
+              <img 
+                src="https://res.cloudinary.com/drbfimvy9/image/upload/v1740674530/Logo_500x500_px_1_chmwqa.gif" 
+                alt="Logo animé"
+                className="w-full h-full object-contain"
+              />
+            </div>
+            <span className="text-lg font-semibold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+              Andrea Hardy
+            </span>
           </NavLink>
           
           <Sheet>
@@ -168,7 +217,16 @@ export const Header = () => {
             </SheetTrigger>
             <SheetContent className="w-[80%] sm:w-[350px]">
               <div className="space-y-6 py-6">
-                <h2 className="text-lg font-semibold text-primary">Menu</h2>
+                <div className="flex items-center">
+                  <div className="w-12 h-12 relative overflow-hidden mr-3">
+                    <img 
+                      src="https://res.cloudinary.com/drbfimvy9/image/upload/v1740674530/Logo_500x500_px_1_chmwqa.gif" 
+                      alt="Logo animé"
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                  <h2 className="text-lg font-semibold text-primary">Menu</h2>
+                </div>
                 
                 <div className="space-y-1">
                   <NavLink

@@ -1,60 +1,74 @@
 
 import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
-import About from "./pages/About";
-import Skills from "./pages/Skills";
-import Experience from "./pages/Experience";
-import Education from "./pages/Education";
-import Projects from "./pages/Projects";
-import Blog from "./pages/Blog";
-import TechWatch from "./pages/TechWatch";
-import Contact from "./pages/Contact";
-import Login from "./pages/auth/Login";
-import Dashboard from "./pages/admin/Dashboard";
-import SkillsAdmin from "./pages/admin/skills/SkillsAdmin";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import { NotFound } from "./pages/NotFound";
+import BlogPage from "./pages/Blog";
+import AboutPage from "./pages/About";
+import ContactPage from "./pages/Contact";
+import IndexPage from "./pages/Index";
+import ProjectsPage from "./pages/Projects";
+import SkillsPage from "./pages/Skills";
+import ExperiencePage from "./pages/Experience";
+import EducationPage from "./pages/Education";
+import TechWatchPage from "./pages/TechWatch";
+import LoginPage from "./pages/auth/Login";
+import { BotpressChat } from "./components/BotpressChat";
+
+// Admin Routes
+import DashboardPage from "./pages/admin/Dashboard";
+import AboutAdmin from "./pages/admin/about/AboutAdmin";
+import BlogAdmin from "./pages/admin/blog/BlogAdmin";
+import EducationAdmin from "./pages/admin/education/EducationAdmin";
 import ExperiencesAdmin from "./pages/admin/experiences/ExperiencesAdmin";
 import ProjectsAdmin from "./pages/admin/projects/ProjectsAdmin";
-import EducationAdmin from "./pages/admin/education/EducationAdmin";
-import BlogAdmin from "./pages/admin/blog/BlogAdmin";
-import AboutAdmin from "./pages/admin/about/AboutAdmin";
+import SkillsAdmin from "./pages/admin/skills/SkillsAdmin";
 import TechWatchAdmin from "./pages/admin/tech-watch/TechWatchAdmin";
 
-const queryClient = new QueryClient();
+import "./App.css";
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      staleTime: 1000 * 60 * 5, // 5 minutes
+    },
+  },
+});
+
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <Router>
         <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/a-propos" element={<About />} />
-          <Route path="/competences" element={<Skills />} />
-          <Route path="/experience" element={<Experience />} />
-          <Route path="/formation" element={<Education />} />
-          <Route path="/projets" element={<Projects />} />
-          <Route path="/blog" element={<Blog />} />
-          <Route path="/veille-techno" element={<TechWatch />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/admin" element={<Dashboard />} />
-          <Route path="/admin/skills" element={<SkillsAdmin />} />
-          <Route path="/admin/experiences" element={<ExperiencesAdmin />} />
-          <Route path="/admin/projects" element={<ProjectsAdmin />} />
-          <Route path="/admin/education" element={<EducationAdmin />} />
+          <Route path="/" element={<IndexPage />} />
+          <Route path="/a-propos" element={<AboutPage />} />
+          <Route path="/competences" element={<SkillsPage />} />
+          <Route path="/experience" element={<ExperiencePage />} />
+          <Route path="/formation" element={<EducationPage />} />
+          <Route path="/projets" element={<ProjectsPage />} />
+          <Route path="/veille-techno" element={<TechWatchPage />} />
+          <Route path="/blog" element={<BlogPage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/login" element={<LoginPage />} />
+
+          {/* Admin routes */}
+          <Route path="/admin" element={<DashboardPage />} />
+          <Route path="/admin/a-propos" element={<AboutAdmin />} />
           <Route path="/admin/blog" element={<BlogAdmin />} />
-          <Route path="/admin/about" element={<AboutAdmin />} />
-          <Route path="/admin/tech-watch" element={<TechWatchAdmin />} />
-          <Route path="*" element={<Dashboard />} />
+          <Route path="/admin/formation" element={<EducationAdmin />} />
+          <Route path="/admin/experiences" element={<ExperiencesAdmin />} />
+          <Route path="/admin/projets" element={<ProjectsAdmin />} />
+          <Route path="/admin/competences" element={<SkillsAdmin />} />
+          <Route path="/admin/veille-techno" element={<TechWatchAdmin />} />
+
+          <Route path="*" element={<NotFound />} />
         </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+        <Toaster />
+        <BotpressChat />
+      </Router>
+    </QueryClientProvider>
+  );
+}
 
 export default App;
