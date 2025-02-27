@@ -56,13 +56,19 @@ function App() {
 
           {/* Admin Routes - Flat structure pour éviter les problèmes de Outlet */}
           <Route path="/admin" element={<DashboardPage />} />
+          {/* Ajout de routes alternatives avec et sans tiret */}
           <Route path="/admin/a-propos" element={<AboutAdmin />} />
+          <Route path="/admin/about" element={<AboutAdmin />} />
           <Route path="/admin/blog" element={<BlogAdmin />} />
           <Route path="/admin/formation" element={<EducationAdmin />} />
+          <Route path="/admin/education" element={<EducationAdmin />} />
           <Route path="/admin/experiences" element={<ExperiencesAdmin />} />
           <Route path="/admin/projets" element={<ProjectsAdmin />} />
+          <Route path="/admin/projects" element={<ProjectsAdmin />} />
           <Route path="/admin/competences" element={<SkillsAdmin />} />
+          <Route path="/admin/skills" element={<SkillsAdmin />} />
           <Route path="/admin/veille-techno" element={<TechWatchAdmin />} />
+          <Route path="/admin/tech-watch" element={<TechWatchAdmin />} />
 
           {/* 404 Route */}
           <Route path="*" element={<NotFound />} />
