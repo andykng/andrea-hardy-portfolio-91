@@ -82,15 +82,15 @@ export default function IndexPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
               >
-                Développeur Full Stack
+                Administrateur Systèmes & Réseaux | Développeur IA-Assisté
               </motion.div>
               
               <h1 className="text-4xl md:text-6xl font-bold tracking-tight leading-tight">
-                Créer des expériences web <span className="text-primary">exceptionnelles</span>
+                Créer des expériences web et des infrastructure <span className="text-primary">exceptionnelles</span>
               </h1>
               
               <p className="text-xl text-muted-foreground">
-                Développeur passionné par les technologies modernes et la création d'applications web performantes et élégantes
+               Administrateur systèmes et réseaux passionné, j’ai une approche unique du développement : je ne code qu’avec l’assistance de l’IA. Cette méthode me permet d’optimiser mon efficacité, d’explorer rapidement de nouvelles technologies et de créer des applications modernes et performantes. Toujours en quête d’innovation, j’allie automatisation, sécurité et performance pour concevoir des infrastructures robustes et adaptées aux besoins actuels.
               </p>
               
               <div className="flex flex-wrap justify-center md:justify-start gap-4 pt-4">
@@ -137,7 +137,7 @@ export default function IndexPage() {
                   <Github className="w-5 h-5 text-gray-700" />
                 </a>
                 <a 
-                  href="https://linkedin.com" 
+                  href="https://www.linkedin.com/in/andrea-h-702a97188/" 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="w-12 h-12 flex items-center justify-center rounded-full bg-white border border-gray-200 shadow-sm hover:shadow-md transition-shadow transform hover:-translate-y-1 transition-transform duration-300"
@@ -145,7 +145,7 @@ export default function IndexPage() {
                   <LinkedinIcon className="w-5 h-5 text-gray-700" />
                 </a>
                 <a 
-                  href="mailto:contact@example.com"
+                  href="mailto:andrea.hardy@andreahardy.fr"
                   className="w-12 h-12 flex items-center justify-center rounded-full bg-white border border-gray-200 shadow-sm hover:shadow-md transition-shadow transform hover:-translate-y-1 transition-transform duration-300"
                 >
                   <Mail className="w-5 h-5 text-gray-700" />
