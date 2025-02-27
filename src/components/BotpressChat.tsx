@@ -5,7 +5,7 @@ export const BotpressChat = () => {
   useEffect(() => {
     // This is just to ensure Botpress is properly initialized
     const checkBotpress = () => {
-      if (window.botpressWebChat) {
+      if (window && 'botpressWebChat' in window) {
         console.log("Botpress webchat is loaded");
       } else {
         // If not loaded yet, try again
