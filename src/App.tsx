@@ -17,6 +17,8 @@ import Login from "./pages/auth/Login";
 import Dashboard from "./pages/admin/Dashboard";
 import SkillsAdmin from "./pages/admin/skills/SkillsAdmin";
 import ExperiencesAdmin from "./pages/admin/experiences/ExperiencesAdmin";
+import ProjectsAdmin from "./pages/admin/projects/ProjectsAdmin";
+import EducationAdmin from "./pages/admin/education/EducationAdmin";
 import BlogAdmin from "./pages/admin/blog/BlogAdmin";
 import AboutAdmin from "./pages/admin/about/AboutAdmin";
 import TechWatchAdmin from "./pages/admin/tech-watch/TechWatchAdmin";
@@ -43,6 +45,8 @@ const App = () => (
           <Route path="/admin" element={<Dashboard />} />
           <Route path="/admin/skills" element={<SkillsAdmin />} />
           <Route path="/admin/experiences" element={<ExperiencesAdmin />} />
+          <Route path="/admin/projects" element={<ProjectsAdmin />} />
+          <Route path="/admin/education" element={<EducationAdmin />} />
           <Route path="/admin/blog" element={<BlogAdmin />} />
           <Route path="/admin/about" element={<AboutAdmin />} />
           <Route path="/admin/tech-watch" element={<TechWatchAdmin />} />
