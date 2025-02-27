@@ -90,7 +90,7 @@ export default function IndexPage() {
               </h1>
               
               <p className="text-xl text-muted-foreground">
-               Administrateur systèmes et réseaux passionné, j’ai une approche unique du développement : je ne code qu’avec l’assistance de l’IA. Cette méthode me permet d’optimiser mon efficacité, d’explorer rapidement de nouvelles technologies et de créer des applications modernes et performantes. Toujours en quête d’innovation, j’allie automatisation, sécurité et performance pour concevoir des infrastructures robustes et adaptées aux besoins actuels.
+               Administrateur systèmes et réseaux passionné, j’ai une approche unique du développement : je ne code beaucoup l’assistance de l’IA. Cette méthode me permet d’optimiser mon efficacité, d’explorer rapidement de nouvelles technologies et de créer des applications modernes et performantes. Toujours en quête d’innovation, j’allie automatisation, sécurité et performance pour concevoir des infrastructures robustes et adaptées aux besoins actuels.
               </p>
               
               <div className="flex flex-wrap justify-center md:justify-start gap-4 pt-4">
