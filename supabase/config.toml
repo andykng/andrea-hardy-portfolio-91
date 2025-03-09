@@ -46,9 +46,8 @@ enable_signup = true
 enable_confirmations = true
 
 [functions]
-[functions.serve]
 enabled = true
 
-[[functions.serve.functions]]
+[[functions.function]]
 name = "deepseek-assistant"
 verify_jwt = false
