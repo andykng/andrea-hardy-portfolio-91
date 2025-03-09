@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -7,7 +6,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Loader2, Sparkles, Copy, ThumbsUp } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
@@ -44,28 +42,25 @@ export function BlogAIGenerator({ onSelect, onSelectTitle, onSelectExcerpt }: Bl
     try {
       console.log("Envoi de la requête de génération avec les paramètres:", { topic, category, type: generationType });
       
-      // Vérifier que l'instance supabase est initialisée correctement
-      if (!supabase || !supabase.functions) {
-        throw new Error("Le client Supabase n'est pas correctement initialisé");
-      }
-
-      // Appel à la fonction Edge avec toutes les informations requises
-      const { data, error: functionError } = await supabase.functions.invoke("blog-generator", {
-        body: {
+      const response = await fetch("https://nxwrldqcewwaamrsvlon.supabase.co/functions/v1/deepseek-integration", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
           topic,
           category,
           type: generationType
-        },
-        // Assurez-vous que les headers sont correctement définis
-        headers: {
-          "Content-Type": "application/json",
-        }
+        })
       });
 
-      if (functionError) {
-        console.error("Erreur retournée par la fonction Edge:", functionError);
-        throw new Error(`Erreur lors de l'appel à la fonction: ${functionError.message || JSON.stringify(functionError)}`);
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Erreur HTTP:", response.status, errorText);
+        throw new Error(`Erreur HTTP ${response.status}: ${errorText}`);
       }
+
+      const data = await response.json();
 
       if (!data || !data.content) {
         console.error("Réponse invalide:", data);
@@ -98,7 +93,6 @@ export function BlogAIGenerator({ onSelect, onSelectTitle, onSelectExcerpt }: Bl
     } else if (generationType === "excerpt" && onSelectExcerpt) {
       onSelectExcerpt(generatedContent);
     } else if (generationType === "title" && onSelectTitle) {
-      // Si ce sont des titres, sélectionner le premier uniquement
       const firstTitle = generatedContent.split('\n')[0].replace(/^\d+\.\s*/, '');
       onSelectTitle(firstTitle);
     }

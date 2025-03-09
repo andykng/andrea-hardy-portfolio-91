@@ -59,3 +59,7 @@ verify_jwt = false
 [[functions.function]]
 name = "send-contact-email"
 verify_jwt = false
+
+[[functions.function]]
+name = "deepseek-integration"
+verify_jwt = false

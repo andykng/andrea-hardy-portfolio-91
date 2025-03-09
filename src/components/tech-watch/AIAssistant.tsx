@@ -2,10 +2,9 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Lightbulb, Loader2, SendIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 import { useMobile } from "@/hooks/use-mobile";
 
 interface AIAssistantProps {
@@ -36,14 +35,32 @@ export function AIAssistant({ articleContent, articleTitle }: AIAssistantProps) 
     setResponse("");
     
     try {
-      const { data, error } = await supabase.functions.invoke("deepseek-assistant", {
-        body: {
-          prompt,
-          article: articleContent ? `Titre: ${articleTitle}\n\nContenu: ${articleContent}` : null
-        }
+      // Utiliser l'URL directe de la fonction Edge
+      const finalPrompt = prompt;
+      const article = articleContent ? `Titre: ${articleTitle}\n\nContenu: ${articleContent}` : null;
+      
+      const response = await fetch("https://nxwrldqcewwaamrsvlon.supabase.co/functions/v1/deepseek-integration", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          prompt: finalPrompt,
+          article
+        })
       });
       
-      if (error) throw error;
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Erreur HTTP:", response.status, errorText);
+        throw new Error(`Erreur HTTP ${response.status}: ${errorText}`);
+      }
+      
+      const data = await response.json();
+      
+      if (!data.response) {
+        throw new Error("Format de réponse invalide");
+      }
       
       setResponse(data.response);
     } catch (error) {
