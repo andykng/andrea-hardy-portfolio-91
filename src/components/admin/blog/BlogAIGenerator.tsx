@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
 interface BlogAIGeneratorProps {
   onSelect: (content: string) => void;
@@ -23,6 +24,7 @@ export function BlogAIGenerator({ onSelect, onSelectTitle, onSelectExcerpt }: Bl
   const [generationType, setGenerationType] = useState<"full" | "excerpt" | "title">("full");
   const [generatedContent, setGeneratedContent] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
   const handleGenerate = async () => {
@@ -37,8 +39,11 @@ export function BlogAIGenerator({ onSelect, onSelectTitle, onSelectExcerpt }: Bl
 
     setIsLoading(true);
     setGeneratedContent("");
+    setError(null);
 
     try {
+      console.log("Envoi de la requête de génération avec les paramètres:", { topic, category, type: generationType });
+      
       const { data, error } = await supabase.functions.invoke("blog-generator", {
         body: {
           topic,
@@ -47,16 +52,26 @@ export function BlogAIGenerator({ onSelect, onSelectTitle, onSelectExcerpt }: Bl
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Erreur retournée par la fonction:", error);
+        throw new Error(`Erreur lors de l'appel à la fonction: ${error.message || JSON.stringify(error)}`);
+      }
 
+      if (!data || !data.content) {
+        console.error("Réponse invalide:", data);
+        throw new Error("Format de réponse invalide");
+      }
+
+      console.log("Contenu généré avec succès, longueur:", data.content.length);
       setGeneratedContent(data.content);
 
       toast({
         title: "Contenu généré avec succès",
         description: "Vous pouvez maintenant utiliser ce contenu pour votre article",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erreur lors de la génération du contenu:", error);
+      setError(error.message || "Une erreur inconnue est survenue");
       toast({
         title: "Erreur",
         description: "Une erreur est survenue lors de la génération du contenu. Veuillez réessayer.",
@@ -144,6 +159,13 @@ export function BlogAIGenerator({ onSelect, onSelectTitle, onSelectExcerpt }: Bl
               </Select>
             </div>
           </div>
+
+          {error && (
+            <Alert variant="destructive" className="mt-4">
+              <AlertTitle>Erreur lors de la génération</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
 
           <div className="flex justify-end">
             <Button
