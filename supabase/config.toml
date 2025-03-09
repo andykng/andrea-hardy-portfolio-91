@@ -2,8 +2,8 @@
 project_id = "nxwrldqcewwaamrsvlon"
 
 [api]
-enabled_schemas = ["public", "storage", "graphql_public"]
 port = 54321
+schemas = ["public", "storage", "graphql_public"]
 extra_search_path = ["extensions"]
 max_rows = 1000
 
@@ -46,8 +46,9 @@ enable_signup = true
 enable_confirmations = true
 
 [functions]
+[functions.serve]
 enabled = true
 
-[[functions.function]]
+[[functions.serve.functions]]
 name = "deepseek-assistant"
 verify_jwt = false
