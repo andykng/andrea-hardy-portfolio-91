@@ -47,10 +47,10 @@ export function AIAssistant({ articleContent, articleTitle }: AIAssistantProps) 
       
       setResponse(data.response);
     } catch (error) {
-      console.error("Error calling DeepSeek assistant:", error);
+      console.error("Erreur lors de l'appel à l'assistant IA:", error);
       toast({
         title: "Erreur",
-        description: "Une erreur est survenue lors de la communication avec l'assistant IA",
+        description: "Une erreur est survenue lors de la communication avec l'assistant IA. Veuillez réessayer.",
         variant: "destructive",
       });
     } finally {
@@ -60,8 +60,8 @@ export function AIAssistant({ articleContent, articleTitle }: AIAssistantProps) 
   
   const predefinedQuestions = [
     "Peux-tu résumer cet article en 3 points clés ?",
-    "Explique-moi les implications de cette technologie pour les développeurs",
-    "Quelles sont les entreprises qui pourraient bénéficier de cette innovation ?",
+    "Génère un résumé de projet basé sur cet article",
+    "Quelles compétences seraient utiles pour travailler avec cette technologie ?",
     "Comment cette technologie s'intègre-t-elle dans les tendances actuelles ?"
   ];
   
@@ -74,14 +74,14 @@ export function AIAssistant({ articleContent, articleTitle }: AIAssistantProps) 
       <CardHeader className="pb-3">
         <CardTitle className="text-xl text-blue-700 flex items-center gap-2">
           <Lightbulb className="h-5 w-5" />
-          Assistant IA - DeepSeek
+          AssistProTech - Assistant IA
         </CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Textarea 
-              placeholder="Posez une question sur cet article de veille technologique..." 
+              placeholder="Posez une question sur cet article ou demandez une analyse de compétences..." 
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               className="min-h-[80px] border-blue-200 focus:border-blue-400"

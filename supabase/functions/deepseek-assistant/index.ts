@@ -23,7 +23,7 @@ serve(async (req) => {
       finalPrompt = `Voici un article de veille technologique:\n\n${article}\n\n${prompt}`;
     }
 
-    console.log("Calling DeepSeek API with prompt:", finalPrompt.substring(0, 100) + "...");
+    console.log("Appel de l'API DeepSeek avec prompt:", finalPrompt.substring(0, 100) + "...");
 
     const response = await fetch(API_URL, {
       method: 'POST',
@@ -36,7 +36,7 @@ serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: "Tu es un assistant spécialisé en technologies informatiques qui aide à analyser et à comprendre des articles de veille technologique. Tu donnes des explications claires, concises et informatives. Tu expliques les concepts techniques de manière accessible."
+            content: "Tu es AssistProTech, un assistant spécialisé en technologies informatiques qui aide à analyser et à comprendre des articles de veille technologique. Tes fonctionnalités principales sont la génération de résumés de projets à partir de spécifications techniques et l'analyse de compétences pour suggérer des technologies complémentaires. Tu donnes des explications claires, concises et informatives. Tu expliques les concepts techniques de manière accessible."
           },
           {
             role: "user",
@@ -49,10 +49,10 @@ serve(async (req) => {
     });
 
     const data = await response.json();
-    console.log("DeepSeek API response status:", response.status);
+    console.log("Réponse de l'API DeepSeek - statut:", response.status);
 
     if (!response.ok) {
-      console.error("DeepSeek API error:", data);
+      console.error("Erreur API DeepSeek:", data);
       throw new Error(data.error?.message || "Erreur lors de la communication avec l'API DeepSeek");
     }
 
@@ -62,7 +62,7 @@ serve(async (req) => {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
-    console.error("Function error:", error.message);
+    console.error("Erreur dans la fonction:", error.message);
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
