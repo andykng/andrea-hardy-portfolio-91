@@ -6,8 +6,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { useState } from "react";
+import { AIAssistant } from "@/components/tech-watch/AIAssistant";
+import { useMobile } from "@/hooks/use-mobile";
 
 export default function TechWatchPage() {
+  const [selectedArticle, setSelectedArticle] = useState<any>(null);
+  const isMobile = useMobile();
+  
   const { data: articles, isLoading } = useQuery({
     queryKey: ['tech-watch'],
     queryFn: async () => {
@@ -28,6 +34,7 @@ export default function TechWatchPage() {
           className="text-3xl md:text-4xl font-bold text-center mb-8 md:mb-12 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-blue-400"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: isMobile ? 0.3 : 0.5 }}
         >
           Veille Technologique
         </motion.h1>
@@ -43,10 +50,11 @@ export default function TechWatchPage() {
                 key={article.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
+                transition={{ delay: isMobile ? 0.1 : index * 0.1, duration: isMobile ? 0.3 : 0.5 }}
                 className="w-full"
+                onClick={() => setSelectedArticle(article)}
               >
-                <Card className="border-blue-200 bg-gradient-to-br from-blue-50 to-white shadow-md hover:shadow-lg transition-shadow duration-300">
+                <Card className={`border-blue-200 bg-gradient-to-br from-blue-50 to-white shadow-md hover:shadow-lg transition-shadow duration-300 ${selectedArticle?.id === article.id ? 'ring-2 ring-blue-400' : ''}`}>
                   <CardHeader className="pb-2">
                     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
                       <CardTitle className="text-xl text-blue-700">{article.title}</CardTitle>
@@ -77,6 +85,19 @@ export default function TechWatchPage() {
                 </Card>
               </motion.div>
             ))}
+            
+            {selectedArticle && (
+              <AIAssistant 
+                articleContent={selectedArticle.content} 
+                articleTitle={selectedArticle.title}
+              />
+            )}
+            
+            {!selectedArticle && articles && articles.length > 0 && (
+              <Card className="border-blue-200 bg-blue-50 shadow-md p-4 text-center">
+                <p className="text-blue-700">Sélectionnez un article ci-dessus pour utiliser l'assistant IA</p>
+              </Card>
+            )}
           </div>
         )}
       </div>
