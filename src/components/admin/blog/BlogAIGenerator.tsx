@@ -44,17 +44,27 @@ export function BlogAIGenerator({ onSelect, onSelectTitle, onSelectExcerpt }: Bl
     try {
       console.log("Envoi de la requête de génération avec les paramètres:", { topic, category, type: generationType });
       
-      const { data, error } = await supabase.functions.invoke("blog-generator", {
+      // Vérifier que l'instance supabase est initialisée correctement
+      if (!supabase || !supabase.functions) {
+        throw new Error("Le client Supabase n'est pas correctement initialisé");
+      }
+
+      // Appel à la fonction Edge avec toutes les informations requises
+      const { data, error: functionError } = await supabase.functions.invoke("blog-generator", {
         body: {
           topic,
           category,
           type: generationType
+        },
+        // Assurez-vous que les headers sont correctement définis
+        headers: {
+          "Content-Type": "application/json",
         }
       });
 
-      if (error) {
-        console.error("Erreur retournée par la fonction:", error);
-        throw new Error(`Erreur lors de l'appel à la fonction: ${error.message || JSON.stringify(error)}`);
+      if (functionError) {
+        console.error("Erreur retournée par la fonction Edge:", functionError);
+        throw new Error(`Erreur lors de l'appel à la fonction: ${functionError.message || JSON.stringify(functionError)}`);
       }
 
       if (!data || !data.content) {
