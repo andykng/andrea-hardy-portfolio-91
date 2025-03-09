@@ -51,3 +51,7 @@ enabled = true
 [[functions.function]]
 name = "deepseek-assistant"
 verify_jwt = false
+
+[[functions.function]]
+name = "blog-generator"
+verify_jwt = false
