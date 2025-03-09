@@ -93,14 +93,21 @@ serve(async (req) => {
 
       console.log("Statut de la réponse DeepSeek:", response.status);
       
+      const responseText = await response.text();
+      console.log("Réponse brute de l'API DeepSeek:", responseText.substring(0, 200) + "...");
+      
       if (!response.ok) {
-        const errorData = await response.text();
-        console.error("Erreur API DeepSeek - Réponse complète:", errorData);
-        throw new Error(`Erreur API DeepSeek (${response.status}): ${errorData}`);
+        console.error("Erreur API DeepSeek - Réponse complète:", responseText);
+        throw new Error(`Erreur API DeepSeek (${response.status}): ${responseText}`);
       }
 
-      const data = await response.json();
-      console.log("Réponse de l'API DeepSeek reçue correctement");
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (e) {
+        console.error("Erreur lors de l'analyse de la réponse JSON:", e);
+        throw new Error(`Réponse non-JSON reçue de l'API DeepSeek: ${responseText.substring(0, 100)}...`);
+      }
 
       if (!data.choices || !data.choices[0] || !data.choices[0].message) {
         console.error("Format de réponse DeepSeek inattendu:", JSON.stringify(data));
