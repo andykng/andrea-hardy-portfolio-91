@@ -55,3 +55,7 @@ verify_jwt = false
 [[functions.function]]
 name = "blog-generator"
 verify_jwt = false
+
+[[functions.function]]
+name = "send-contact-email"
+verify_jwt = false
