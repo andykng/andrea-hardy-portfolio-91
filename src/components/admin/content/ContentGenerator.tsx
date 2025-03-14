@@ -36,6 +36,16 @@ export function ContentGenerator() {
   const [title, setTitle] = useState("");
   const [excerpt, setExcerpt] = useState("");
 
+  // Function to generate a slug from a title
+  const generateSlug = (text: string): string => {
+    return text
+      .toLowerCase()
+      .replace(/[^\w\s-]/g, '') // Remove special characters
+      .replace(/\s+/g, '-')     // Replace spaces with hyphens
+      .replace(/-+/g, '-')      // Remove consecutive hyphens
+      .trim();                  // Trim leading/trailing spaces
+  };
+
   const handleGenerate = async () => {
     if (!subject) {
       toast({
@@ -108,29 +118,27 @@ export function ContentGenerator() {
 
     try {
       if (destination === "blog") {
-        const { error } = await supabase.from("blog_posts").insert([
-          {
-            title,
-            content: finalContent,
-            excerpt: excerpt || undefined,
-            category,
-            status: "published",
-            published_at: new Date().toISOString(),
-            read_time: Math.ceil(finalContent.split(" ").length / 200), // ~200 words per minute
-          },
-        ]);
+        const slug = generateSlug(title);
+        const { error } = await supabase.from("blog_posts").insert({
+          title,
+          content: finalContent,
+          excerpt: excerpt || undefined,
+          category,
+          status: "published",
+          published_at: new Date().toISOString(),
+          read_time: Math.ceil(finalContent.split(" ").length / 200), // ~200 words per minute
+          slug, // Add the required slug field
+        });
 
         if (error) throw error;
       } else {
         // Tech watch
-        const { error } = await supabase.from("tech_watch").insert([
-          {
-            title,
-            content: finalContent,
-            category,
-            publication_date: new Date().toISOString().split("T")[0],
-          },
-        ]);
+        const { error } = await supabase.from("tech_watch").insert({
+          title,
+          content: finalContent,
+          category,
+          publication_date: new Date().toISOString().split("T")[0],
+        });
 
         if (error) throw error;
       }

@@ -1,3 +1,4 @@
+
 import {
   LayoutDashboard,
   Code2,
@@ -10,11 +11,12 @@ import {
   FileText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { usePathname, useRouter } from "next/navigation";
+import { useLocation, useNavigate } from "react-router-dom";
 
 export function AdminSidebar() {
-  const pathname = usePathname();
-  const navigate = useRouter().push;
+  const location = useLocation();
+  const pathname = location.pathname;
+  const navigate = useNavigate();
 
   return (
     <div className="space-y-4 py-4">

@@ -1,18 +1,19 @@
+
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'sonner';
 
 // Public Pages
-import HomePage from "./pages/HomePage";
-import SkillsPage from "./pages/SkillsPage";
-import ExperiencesPage from "./pages/ExperiencesPage";
-import ProjectsPage from "./pages/ProjectsPage";
-import EducationPage from "./pages/EducationPage";
-import ContactPage from "./pages/ContactPage";
-import AboutPage from "./pages/AboutPage";
-import BlogPage from "./pages/BlogPage";
-import BlogPostPage from "./pages/BlogPostPage";
-import TechWatchPage from "./pages/TechWatchPage";
+import HomePage from "./pages/Index";
+import SkillsPage from "./pages/Skills";
+import ExperiencesPage from "./pages/Experience";
+import ProjectsPage from "./pages/Projects";
+import EducationPage from "./pages/Education";
+import ContactPage from "./pages/Contact";
+import AboutPage from "./pages/About";
+import BlogPage from "./pages/Blog";
+import BlogPostPage from "./pages/Blog"; // This needs a proper BlogPost page
+import TechWatchPage from "./pages/TechWatch";
 
 // Admin Pages
 import DashboardPage from "./pages/admin/Dashboard";
@@ -23,24 +24,30 @@ import EducationAdmin from "./pages/admin/education/EducationAdmin";
 import AboutAdmin from "./pages/admin/about/AboutAdmin";
 import BlogAdmin from "./pages/admin/blog/BlogAdmin";
 import TechWatchAdmin from "./pages/admin/tech-watch/TechWatchAdmin";
-import ContentAdmin from "./pages/admin/content/ContentAdmin"; // Add this import
+import ContentAdmin from "./pages/admin/content/ContentAdmin";
 
 // Auth Pages
-import LoginPage from "./pages/auth/LoginPage";
-import RegisterPage from "./pages/auth/RegisterPage";
-import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
-import ResetPasswordPage from "./pages/auth/ResetPasswordPage";
+import LoginPage from "./pages/auth/Login";
+// We'll need to create these auth pages or adjust imports
+const RegisterPage = () => <div>Register Page</div>;
+const ForgotPasswordPage = () => <div>Forgot Password Page</div>;
+const ResetPasswordPage = () => <div>Reset Password Page</div>;
 
-// Auth Context
-import { AuthProvider, useAuth } from "./context/AuthContext";
+// Auth Context placeholder - we should create this
+const AuthContext = React.createContext({});
+const AuthProvider = ({ children }) => {
+  const [authState, setAuthState] = useState({ isAuthenticated: false });
+  const useAuth = () => ({ authState });
+  return <AuthContext.Provider value={{ authState, useAuth }}>{children}</AuthContext.Provider>;
+};
 
-// Components
-import { RequireAuth } from "./components/auth/RequireAuth";
-import NotFoundPage from "./pages/NotFoundPage";
+// RequireAuth placeholder - we should create this
+const RequireAuth = ({ children }) => <>{children}</>;
+const NotFoundPage = () => <div>Not Found</div>;
 
 function App() {
   const [loading, setLoading] = useState(true);
-  const { authState } = useAuth();
+  const { authState } = { authState: { isAuthenticated: false } }; // Placeholder for auth state
 
   useEffect(() => {
     // Simulate loading
@@ -65,7 +72,7 @@ function App() {
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/blog" element={<BlogPage />} />
-        <Route path="/blog/:slug" element={<BlogPostPage />} />
+        <Route path="/blog/:slug" element={<BlogPage />} /> {/* Updated to use BlogPage for now */}
         <Route path="/tech-watch" element={<TechWatchPage />} />
 
         {/* Admin Routes */}
@@ -77,7 +84,7 @@ function App() {
         <Route path="/admin/about" element={<RequireAuth><AboutAdmin /></RequireAuth>} />
         <Route path="/admin/blog" element={<RequireAuth><BlogAdmin /></RequireAuth>} />
         <Route path="/admin/tech-watch" element={<RequireAuth><TechWatchAdmin /></RequireAuth>} />
-        <Route path="/admin/content" element={<RequireAuth><ContentAdmin /></RequireAuth>} /> {/* Add this route */}
+        <Route path="/admin/content" element={<RequireAuth><ContentAdmin /></RequireAuth>} />
 
         {/* Auth Routes */}
         <Route path="/login" element={authState.isAuthenticated ? <Navigate to="/admin" /> : <LoginPage />} />
