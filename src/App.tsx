@@ -68,6 +68,14 @@ function App() {
             <Route path="/blog" element={<BlogPage />} />
             <Route path="/blog/:slug" element={<BlogPage />} />
             <Route path="/tech-watch" element={<TechWatchPage />} />
+            
+            {/* French Routes (Redirections) */}
+            <Route path="/competences" element={<Navigate to="/skills" replace />} />
+            <Route path="/experience" element={<Navigate to="/experiences" replace />} />
+            <Route path="/projets" element={<Navigate to="/projects" replace />} />
+            <Route path="/formation" element={<Navigate to="/education" replace />} />
+            <Route path="/a-propos" element={<Navigate to="/about" replace />} />
+            <Route path="/veille-techno" element={<Navigate to="/tech-watch" replace />} />
 
             {/* Admin Routes */}
             <Route path="/admin" element={<RequireAuth><DashboardPage /></RequireAuth>} />

@@ -35,6 +35,7 @@ export function ContentGenerator() {
   const [finalContent, setFinalContent] = useState("");
   const [title, setTitle] = useState("");
   const [excerpt, setExcerpt] = useState("");
+  const [debug, setDebug] = useState<any>(null);
 
   // Function to generate a slug from a title
   const generateSlug = (text: string): string => {
@@ -58,6 +59,8 @@ export function ContentGenerator() {
 
     setIsGenerating(true);
     try {
+      console.log("Generating content for subject:", subject);
+      
       const response = await fetch("https://nxwrldqcewwaamrsvlon.supabase.co/functions/v1/deepseek-integration", {
         method: "POST",
         headers: {
@@ -78,7 +81,9 @@ export function ContentGenerator() {
       });
 
       if (!response.ok) {
-        throw new Error(`Error: ${response.status}`);
+        const errorText = await response.text();
+        console.error("Error response:", errorText);
+        throw new Error(`Error: ${response.status} - ${errorText}`);
       }
 
       const data = await response.json();
@@ -93,12 +98,13 @@ export function ContentGenerator() {
       setFinalContent(data.content || "");
       setTitle(data.title || subject);
       setExcerpt(data.excerpt || "");
+      setDebug(data);
 
     } catch (error) {
       console.error("Error generating content:", error);
       toast({
         title: "Erreur",
-        description: "Erreur lors de la génération du contenu",
+        description: `Erreur lors de la génération du contenu: ${error.message}`,
         variant: "destructive",
       });
     } finally {
@@ -119,7 +125,9 @@ export function ContentGenerator() {
     try {
       if (destination === "blog") {
         const slug = generateSlug(title);
-        const { error } = await supabase.from("blog_posts").insert({
+        console.log("Publishing to blog with slug:", slug);
+        
+        const { data, error } = await supabase.from("blog_posts").insert({
           title,
           content: finalContent,
           excerpt: excerpt || undefined,
@@ -130,9 +138,12 @@ export function ContentGenerator() {
           slug, // Add the required slug field
         });
 
+        console.log("Insert result:", { data, error });
+
         if (error) throw error;
       } else {
         // Tech watch
+        console.log("Publishing to tech watch");
         const { error } = await supabase.from("tech_watch").insert({
           title,
           content: finalContent,
@@ -310,6 +321,19 @@ export function ContentGenerator() {
               Publier
             </Button>
           </CardFooter>
+        </Card>
+      )}
+      
+      {debug && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Informations de débogage</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <pre className="bg-gray-100 p-4 rounded text-xs overflow-auto max-h-[200px]">
+              {JSON.stringify(debug, null, 2)}
+            </pre>
+          </CardContent>
         </Card>
       )}
     </div>
