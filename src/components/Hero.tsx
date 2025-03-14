@@ -9,6 +9,12 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
+import { useEffect, useRef } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { TextPlugin } from "gsap/TextPlugin";
+
+gsap.registerPlugin(ScrollTrigger, TextPlugin);
 
 export const Hero = () => {
   const certifications = [
@@ -29,16 +35,93 @@ export const Hero = () => {
     }
   ];
 
+  const titleRef = useRef(null);
+  const subtitleRef = useRef(null);
+  const ctaRef = useRef(null);
+  const certTitleRef = useRef(null);
+  const chevronRef = useRef(null);
+  const heroSectionRef = useRef(null);
+
+  useEffect(() => {
+    // Main title animation
+    gsap.from(titleRef.current, {
+      duration: 1.2,
+      opacity: 0,
+      y: 50,
+      ease: "power3.out",
+    });
+
+    // Subtitle text reveal animation
+    gsap.to(subtitleRef.current, {
+      duration: 2,
+      text: {
+        value: "Administratrice Système & Réseau passionnée par la sécurité et la gestion de projets IT"
+      },
+      ease: "none",
+      delay: 0.5
+    });
+
+    // CTA buttons animation
+    gsap.from(ctaRef.current?.children, {
+      duration: 0.8,
+      opacity: 0,
+      y: 20,
+      stagger: 0.2,
+      ease: "back.out(1.7)",
+      delay: 1
+    });
+
+    // Chevron animation
+    gsap.to(chevronRef.current, {
+      y: 10,
+      repeat: -1,
+      yoyo: true,
+      duration: 0.8,
+      ease: "power1.inOut"
+    });
+
+    // Certifications title reveal on scroll
+    ScrollTrigger.create({
+      trigger: certTitleRef.current,
+      start: "top 80%",
+      onEnter: () => {
+        gsap.from(certTitleRef.current, {
+          duration: 0.8,
+          opacity: 0,
+          y: 30,
+          ease: "power2.out",
+        });
+      }
+    });
+
+    // Parallax effect on hero section
+    ScrollTrigger.create({
+      trigger: heroSectionRef.current,
+      start: "top top",
+      end: "bottom top",
+      scrub: true,
+      onUpdate: (self) => {
+        const progress = self.progress;
+        gsap.to(heroSectionRef.current, {
+          y: progress * 100,
+          ease: "none",
+          duration: 0.1
+        });
+      }
+    });
+
+    return () => {
+      // Clean up animations on component unmount
+      ScrollTrigger.getAll().forEach(trigger => trigger.kill());
+      gsap.killTweensOf([titleRef.current, subtitleRef.current, ctaRef.current, chevronRef.current, certTitleRef.current]);
+    };
+  }, []);
+
   return (
     <>
-      <section className="min-h-[calc(100vh-4rem)] flex items-center justify-center relative bg-gradient-to-br from-accent via-background to-muted">
+      <section ref={heroSectionRef} className="min-h-[calc(100vh-4rem)] flex items-center justify-center relative bg-gradient-to-br from-accent via-background to-muted">
         <div className="container mx-auto px-4 py-16 text-center">
-          <motion.div 
-            className="max-w-3xl mx-auto space-y-8"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
+          <div className="max-w-3xl mx-auto space-y-8">
             <motion.div 
               className="w-32 h-32 mx-auto rounded-full overflow-hidden border-4 border-primary/20 shadow-lg hover:border-primary/40 transition-colors"
               whileHover={{ scale: 1.05 }}
@@ -51,16 +134,20 @@ export const Hero = () => {
               />
             </motion.div>
             <div className="space-y-4">
-              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+              <h1 
+                ref={titleRef}
+                className="text-3xl md:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent"
+              >
                 Bonjour, je suis Andrea Hardy
               </h1>
-              <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto">
-                Administratrice Système & Réseau passionnée par la sécurité et la gestion de projets IT
-              </p>
+              <p 
+                ref={subtitleRef}
+                className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto min-h-[3rem]"
+              ></p>
             </div>
-            <motion.div 
+            <div 
+              ref={ctaRef}
               className="flex flex-col sm:flex-row gap-4 justify-center items-center"
-              whileHover={{ scale: 1.02 }}
             >
               <Button size="lg" className="bg-primary hover:bg-primary/90 text-white w-full sm:w-auto">
                 Télécharger mon CV
@@ -68,30 +155,27 @@ export const Hero = () => {
               <Button variant="outline" size="lg" className="hover:bg-primary/10 hover:text-primary w-full sm:w-auto">
                 Me Contacter
               </Button>
-            </motion.div>
-          </motion.div>
+            </div>
+          </div>
 
-          <motion.a
+          <a
+            ref={chevronRef}
             href="#certifications"
             className="absolute bottom-8 left-1/2 transform -translate-x-1/2 cursor-pointer"
-            animate={{ y: [0, 10, 0] }}
-            transition={{ repeat: Infinity, duration: 1.5 }}
           >
             <ChevronDown className="h-8 w-8 text-primary/60" />
-          </motion.a>
+          </a>
         </div>
       </section>
 
       <section id="certifications" className="py-16 bg-gradient-to-br from-muted via-background to-accent">
         <div className="container mx-auto px-4">
-          <motion.h2 
+          <h2 
+            ref={certTitleRef}
             className="text-2xl md:text-3xl font-bold text-center mb-12 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
           >
             Mes Certifications
-          </motion.h2>
+          </h2>
           
           <Carousel className="max-w-4xl mx-auto">
             <CarouselContent>
