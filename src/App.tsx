@@ -1,82 +1,95 @@
+import React, { useEffect, useState } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Toaster } from 'sonner';
 
-import { Toaster } from "@/components/ui/toaster";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-import NotFound from "./pages/NotFound";
-import BlogPage from "./pages/Blog";
-import AboutPage from "./pages/About";
-import ContactPage from "./pages/Contact";
-import IndexPage from "./pages/Index";
-import ProjectsPage from "./pages/Projects";
-import SkillsPage from "./pages/Skills";
-import ExperiencePage from "./pages/Experience";
-import EducationPage from "./pages/Education";
-import TechWatchPage from "./pages/TechWatch";
-import LoginPage from "./pages/auth/Login";
-import { BotpressChat } from "./components/BotpressChat";
+// Public Pages
+import HomePage from "./pages/HomePage";
+import SkillsPage from "./pages/SkillsPage";
+import ExperiencesPage from "./pages/ExperiencesPage";
+import ProjectsPage from "./pages/ProjectsPage";
+import EducationPage from "./pages/EducationPage";
+import ContactPage from "./pages/ContactPage";
+import AboutPage from "./pages/AboutPage";
+import BlogPage from "./pages/BlogPage";
+import BlogPostPage from "./pages/BlogPostPage";
+import TechWatchPage from "./pages/TechWatchPage";
 
-// Admin Routes
+// Admin Pages
 import DashboardPage from "./pages/admin/Dashboard";
-import AboutAdmin from "./pages/admin/about/AboutAdmin";
-import BlogAdmin from "./pages/admin/blog/BlogAdmin";
-import EducationAdmin from "./pages/admin/education/EducationAdmin";
+import SkillsAdmin from "./pages/admin/skills/SkillsAdmin";
 import ExperiencesAdmin from "./pages/admin/experiences/ExperiencesAdmin";
 import ProjectsAdmin from "./pages/admin/projects/ProjectsAdmin";
-import SkillsAdmin from "./pages/admin/skills/SkillsAdmin";
+import EducationAdmin from "./pages/admin/education/EducationAdmin";
+import AboutAdmin from "./pages/admin/about/AboutAdmin";
+import BlogAdmin from "./pages/admin/blog/BlogAdmin";
 import TechWatchAdmin from "./pages/admin/tech-watch/TechWatchAdmin";
+import ContentAdmin from "./pages/admin/content/ContentAdmin"; // Add this import
 
-import "./App.css";
+// Auth Pages
+import LoginPage from "./pages/auth/LoginPage";
+import RegisterPage from "./pages/auth/RegisterPage";
+import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/auth/ResetPasswordPage";
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      refetchOnWindowFocus: false,
-      staleTime: 1000 * 60 * 5, // 5 minutes
-    },
-  },
-});
+// Auth Context
+import { AuthProvider, useAuth } from "./context/AuthContext";
+
+// Components
+import { RequireAuth } from "./components/auth/RequireAuth";
+import NotFoundPage from "./pages/NotFoundPage";
 
 function App() {
+  const [loading, setLoading] = useState(true);
+  const { authState } = useAuth();
+
+  useEffect(() => {
+    // Simulate loading
+    setTimeout(() => {
+      setLoading(false);
+    }, 500);
+  }, []);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
   return (
-    <QueryClientProvider client={queryClient}>
-      <Router>
-        <Routes>
-          {/* Public Routes */}
-          <Route index element={<IndexPage />} />
-          <Route path="/" element={<IndexPage />} />
-          <Route path="/a-propos" element={<AboutPage />} />
-          <Route path="/competences" element={<SkillsPage />} />
-          <Route path="/experience" element={<ExperiencePage />} />
-          <Route path="/formation" element={<EducationPage />} />
-          <Route path="/projets" element={<ProjectsPage />} />
-          <Route path="/veille-techno" element={<TechWatchPage />} />
-          <Route path="/blog" element={<BlogPage />} />
-          <Route path="/contact" element={<ContactPage />} />
-          <Route path="/login" element={<LoginPage />} />
+    <BrowserRouter>
+      <Routes>
+        {/* Public Routes */}
+        <Route path="/" element={<HomePage />} />
+        <Route path="/skills" element={<SkillsPage />} />
+        <Route path="/experiences" element={<ExperiencesPage />} />
+        <Route path="/projects" element={<ProjectsPage />} />
+        <Route path="/education" element={<EducationPage />} />
+        <Route path="/contact" element={<ContactPage />} />
+        <Route path="/about" element={<AboutPage />} />
+        <Route path="/blog" element={<BlogPage />} />
+        <Route path="/blog/:slug" element={<BlogPostPage />} />
+        <Route path="/tech-watch" element={<TechWatchPage />} />
 
-          {/* Admin Routes - Flat structure pour éviter les problèmes de Outlet */}
-          <Route path="/admin" element={<DashboardPage />} />
-          {/* Ajout de routes alternatives avec et sans tiret */}
-          <Route path="/admin/a-propos" element={<AboutAdmin />} />
-          <Route path="/admin/about" element={<AboutAdmin />} />
-          <Route path="/admin/blog" element={<BlogAdmin />} />
-          <Route path="/admin/formation" element={<EducationAdmin />} />
-          <Route path="/admin/education" element={<EducationAdmin />} />
-          <Route path="/admin/experiences" element={<ExperiencesAdmin />} />
-          <Route path="/admin/projets" element={<ProjectsAdmin />} />
-          <Route path="/admin/projects" element={<ProjectsAdmin />} />
-          <Route path="/admin/competences" element={<SkillsAdmin />} />
-          <Route path="/admin/skills" element={<SkillsAdmin />} />
-          <Route path="/admin/veille-techno" element={<TechWatchAdmin />} />
-          <Route path="/admin/tech-watch" element={<TechWatchAdmin />} />
+        {/* Admin Routes */}
+        <Route path="/admin" element={<RequireAuth><DashboardPage /></RequireAuth>} />
+        <Route path="/admin/skills" element={<RequireAuth><SkillsAdmin /></RequireAuth>} />
+        <Route path="/admin/experiences" element={<RequireAuth><ExperiencesAdmin /></RequireAuth>} />
+        <Route path="/admin/projects" element={<RequireAuth><ProjectsAdmin /></RequireAuth>} />
+        <Route path="/admin/education" element={<RequireAuth><EducationAdmin /></RequireAuth>} />
+        <Route path="/admin/about" element={<RequireAuth><AboutAdmin /></RequireAuth>} />
+        <Route path="/admin/blog" element={<RequireAuth><BlogAdmin /></RequireAuth>} />
+        <Route path="/admin/tech-watch" element={<RequireAuth><TechWatchAdmin /></RequireAuth>} />
+        <Route path="/admin/content" element={<RequireAuth><ContentAdmin /></RequireAuth>} /> {/* Add this route */}
 
-          {/* 404 Route */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-        <Toaster />
-        <BotpressChat />
-      </Router>
-    </QueryClientProvider>
+        {/* Auth Routes */}
+        <Route path="/login" element={authState.isAuthenticated ? <Navigate to="/admin" /> : <LoginPage />} />
+        <Route path="/register" element={authState.isAuthenticated ? <Navigate to="/admin" /> : <RegisterPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
+
+        {/* 404 */}
+        <Route path="*" element={<NotFoundPage />} />
+      </Routes>
+      <Toaster />
+    </BrowserRouter>
   );
 }
 
