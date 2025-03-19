@@ -11,37 +11,29 @@ export interface Project {
   technologies: string[] | null;
   github_url: string | null;
   demo_url: string | null;
-  pdf_url: string | null;
-  pdf_folder: string | null;
   created_at: string;
   updated_at: string;
 }
 
 export const useProjects = (options?: { 
   adminMode?: boolean, 
-  limit?: number,
-  folder?: string
+  limit?: number
 }) => {
-  const { adminMode = false, limit, folder } = options || {};
+  const { adminMode = false, limit } = options || {};
   
   // Active la souscription en temps réel
   useRealtimeSubscription({
     table: 'projects',
-    queryKeys: ['projects', adminMode ? 'admin' : 'public', limit, folder]
+    queryKeys: ['projects', adminMode ? 'admin' : 'public', limit]
   });
 
   return useQuery({
-    queryKey: ['projects', adminMode ? 'admin' : 'public', limit, folder],
+    queryKey: ['projects', adminMode ? 'admin' : 'public', limit],
     queryFn: async () => {
       let query = supabase
         .from('projects')
         .select('*')
         .order('created_at', { ascending: false });
-      
-      // Filtrer par dossier si nécessaire
-      if (folder) {
-        query = query.eq('pdf_folder', folder);
-      }
       
       // Limiter le nombre de résultats si nécessaire
       if (limit) {

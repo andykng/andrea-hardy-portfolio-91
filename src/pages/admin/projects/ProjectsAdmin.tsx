@@ -15,14 +15,7 @@ import { ProjectFilters } from "@/components/admin/projects/ProjectFilters";
 import { ProjectsEmptyState } from "@/components/admin/projects/ProjectsEmptyState";
 import { ProjectsLoadingState } from "@/components/admin/projects/ProjectsLoadingState";
 
-// Structure des dossiers pour les PDF
-const PDF_FOLDERS = {
-  'year1': 'Projets BTS 1ère Année',
-  'year2': 'Projets BTS 2ème Année',
-  'other': 'Documents Externes'
-};
-
-// Define ProjectInsert type to match the Project interface structure
+// Define ProjectInsert type to match the Project interface structure without ID and timestamps
 type ProjectInsert = Omit<Project, 'id' | 'created_at' | 'updated_at'>;
 
 export default function ProjectsAdmin() {
@@ -33,9 +26,6 @@ export default function ProjectsAdmin() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [mode, setMode] = useState<"create" | "edit">("create");
-  const [pdfUploading, setPdfUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [selectedFolder, setSelectedFolder] = useState<string>("year1");
   const projectsRef = useRef<Array<HTMLDivElement | null>>([]);
 
   // Utiliser GSAP pour animer les éléments
@@ -89,9 +79,7 @@ export default function ProjectsAdmin() {
         image_url: data.image_url || null,
         technologies: data.technologies || null,
         github_url: data.github_url || null,
-        demo_url: data.demo_url || null,
-        pdf_url: data.pdf_url || null,
-        pdf_folder: data.pdf_folder || null
+        demo_url: data.demo_url || null
       };
 
       const { error } = await supabase
@@ -184,9 +172,6 @@ export default function ProjectsAdmin() {
         </div>
 
         <ProjectFilters 
-          pdfFolders={PDF_FOLDERS}
-          selectedFolder={selectedFolder}
-          setSelectedFolder={setSelectedFolder}
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
           filteredCount={filteredProjects.length}
@@ -209,11 +194,6 @@ export default function ProjectsAdmin() {
                 index={i}
                 onEdit={openEditDialog}
                 onDelete={openDeleteDialog}
-                selectedFolder={selectedFolder}
-                pdfUploading={pdfUploading}
-                uploadProgress={uploadProgress}
-                setPdfUploading={setPdfUploading}
-                setUploadProgress={setUploadProgress}
                 refetch={refetch}
                 forwardedRef={el => projectsRef.current[i] = el}
               />
@@ -228,7 +208,6 @@ export default function ProjectsAdmin() {
         mode={mode}
         project={selectedProject}
         onSubmit={mode === "create" ? handleCreate : handleUpdate}
-        pdfFolders={PDF_FOLDERS}
       />
 
       <DeleteConfirmation

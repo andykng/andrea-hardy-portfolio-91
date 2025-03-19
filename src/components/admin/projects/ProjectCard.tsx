@@ -16,12 +16,9 @@ import {
   ExternalLink, 
   Edit, 
   Trash, 
-  Image,
-  FileText
+  Image
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
 
 interface ProjectCardProps {
@@ -29,11 +26,6 @@ interface ProjectCardProps {
   index: number;
   onEdit: (project: Project) => void;
   onDelete: (project: Project) => void;
-  selectedFolder: string;
-  pdfUploading: boolean;
-  uploadProgress: number;
-  setPdfUploading: (state: boolean) => void;
-  setUploadProgress: (progress: number) => void;
   refetch: () => void;
   forwardedRef: React.Ref<HTMLDivElement>;
 }
@@ -43,83 +35,10 @@ export function ProjectCard({
   index,
   onEdit,
   onDelete,
-  selectedFolder,
-  pdfUploading,
-  uploadProgress,
-  setPdfUploading,
-  setUploadProgress,
   refetch,
   forwardedRef
 }: ProjectCardProps) {
   const { toast } = useToast();
-
-  const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files || e.target.files.length === 0) return;
-    
-    const file = e.target.files[0];
-    const fileExt = file.name.split('.').pop();
-    
-    if (fileExt !== 'pdf') {
-      toast({
-        title: "Format non supporté",
-        description: "Seuls les fichiers PDF sont acceptés",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    setPdfUploading(true);
-    setUploadProgress(0);
-    
-    try {
-      const folder = selectedFolder;
-      const filePath = `projects/${folder}/${Date.now()}_${file.name}`;
-      
-      const { error: uploadError } = await supabase.storage
-        .from('documents')
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: false
-        });
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('documents')
-        .getPublicUrl(filePath);
-      
-      // Update the project with the PDF URL
-      const { error: updateError } = await supabase
-        .from('projects')
-        .update({ 
-          pdf_url: publicUrl,
-          pdf_folder: folder
-        })
-        .eq('id', project.id);
-      
-      if (updateError) throw updateError;
-      
-      setUploadProgress(100);
-      setTimeout(() => {
-        setPdfUploading(false);
-        setUploadProgress(0);
-      }, 1000);
-      
-      toast({
-        title: "PDF téléversé avec succès",
-        description: "Le document a été associé au projet",
-      });
-      
-      refetch();
-    } catch (error: any) {
-      toast({
-        title: "Erreur lors du téléversement",
-        description: error.message,
-        variant: "destructive",
-      });
-      setPdfUploading(false);
-    }
-  };
 
   return (
     <motion.div
@@ -180,55 +99,6 @@ export function ProjectCard({
               ))}
             </div>
           )}
-          
-          {/* PDF Upload Section */}
-          <div className="mt-4">
-            <div className="flex items-center justify-between">
-              <p className="text-sm font-medium">Document PDF</p>
-              <label htmlFor={`pdf-upload-${project.id}`}>
-                <div className="cursor-pointer text-xs text-primary hover:underline">
-                  {project.pdf_url ? 'Remplacer' : 'Ajouter'}
-                </div>
-                <input
-                  type="file"
-                  id={`pdf-upload-${project.id}`}
-                  accept=".pdf"
-                  className="hidden"
-                  onChange={handlePdfUpload}
-                  disabled={pdfUploading}
-                />
-              </label>
-            </div>
-            
-            {project.pdf_url ? (
-              <div className="mt-2 flex items-center justify-between bg-secondary/10 p-2 rounded">
-                <div className="flex items-center gap-2">
-                  <FileText className="h-4 w-4 text-primary" />
-                  <span className="text-xs truncate max-w-[150px]">
-                    {project.pdf_url.split('/').pop()}
-                  </span>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-7 w-7 p-0"
-                  onClick={() => window.open(project.pdf_url, '_blank')}
-                >
-                  <ExternalLink className="h-3 w-3" />
-                </Button>
-              </div>
-            ) : pdfUploading ? (
-              <div className="mt-2">
-                <Progress value={uploadProgress} className="h-2" />
-                <p className="text-xs text-center mt-1">Téléversement {uploadProgress}%</p>
-              </div>
-            ) : (
-              <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
-                <FileText className="h-4 w-4" />
-                <span>Aucun document associé</span>
-              </div>
-            )}
-          </div>
         </CardContent>
         <CardFooter className="flex justify-between gap-4 pt-2">
           <div className="flex space-x-2">
@@ -253,12 +123,6 @@ export function ProjectCard({
               </Button>
             )}
           </div>
-          <Badge variant="outline" className="text-xs">
-            {project.pdf_folder === 'year1' && 'BTS 1ère Année'}
-            {project.pdf_folder === 'year2' && 'BTS 2ème Année'}
-            {project.pdf_folder === 'other' && 'Document Externe'}
-            {!project.pdf_folder && 'Non catégorisé'}
-          </Badge>
         </CardFooter>
       </Card>
     </motion.div>

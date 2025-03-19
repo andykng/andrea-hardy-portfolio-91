@@ -12,17 +12,10 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Project } from "@/hooks/use-projects";
-import { X, Plus, Upload, FileText } from "lucide-react";
+import { X, Plus, Upload } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { Progress } from "@/components/ui/progress";
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 interface ProjectDialogProps {
   open: boolean;
@@ -30,7 +23,6 @@ interface ProjectDialogProps {
   mode: "create" | "edit";
   project: Project | null;
   onSubmit: (data: Partial<Project>) => Promise<void>;
-  pdfFolders?: Record<string, string>;
 }
 
 export function ProjectDialog({
@@ -38,8 +30,7 @@ export function ProjectDialog({
   onOpenChange,
   mode,
   project,
-  onSubmit,
-  pdfFolders = {}
+  onSubmit
 }: ProjectDialogProps) {
   const [formData, setFormData] = useState<Partial<Project>>(
     mode === "edit" && project
@@ -51,25 +42,17 @@ export function ProjectDialog({
           github_url: "",
           demo_url: "",
           image_url: "",
-          pdf_url: "",
-          pdf_folder: "year1",
         }
   );
   const [loading, setLoading] = useState(false);
   const [newTechnology, setNewTechnology] = useState("");
   const [uploadProgress, setUploadProgress] = useState(0);
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [pdfFile, setPdfFile] = useState<File | null>(null);
-  const [pdfUploadProgress, setPdfUploadProgress] = useState(0);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSelectChange = (name: string, value: string) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -96,21 +79,6 @@ export function ProjectDialog({
       return;
     }
     setImageFile(e.target.files[0]);
-  };
-
-  const handlePdfChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files || e.target.files.length === 0) {
-      setPdfFile(null);
-      return;
-    }
-    
-    const file = e.target.files[0];
-    if (file.type !== 'application/pdf') {
-      alert("Seuls les fichiers PDF sont acceptés");
-      return;
-    }
-    
-    setPdfFile(file);
   };
 
   const uploadImage = async (): Promise<string | null> => {
@@ -140,55 +108,16 @@ export function ProjectDialog({
     }
   };
 
-  const uploadPdf = async (): Promise<string | null> => {
-    if (!pdfFile) return formData.pdf_url || null;
-
-    try {
-      setPdfUploadProgress(10);
-      
-      const fileExt = pdfFile.name.split('.').pop();
-      const folder = formData.pdf_folder || 'year1';
-      const filePath = `projects/${folder}/${Date.now()}_${pdfFile.name}`;
-      
-      setPdfUploadProgress(30);
-      
-      const { error: uploadError } = await supabase.storage
-        .from('documents')
-        .upload(filePath, pdfFile, {
-          cacheControl: '3600',
-          upsert: false
-        });
-
-      if (uploadError) throw uploadError;
-      
-      setPdfUploadProgress(70);
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('documents')
-        .getPublicUrl(filePath);
-      
-      setPdfUploadProgress(100);
-
-      return publicUrl;
-    } catch (error) {
-      console.error('Error uploading PDF:', error);
-      setPdfUploadProgress(0);
-      return formData.pdf_url || null;
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     
     try {
       const imageUrl = await uploadImage();
-      const pdfUrl = await uploadPdf();
       
       const dataToSubmit = { 
         ...formData, 
-        image_url: imageUrl,
-        pdf_url: pdfUrl
+        image_url: imageUrl
       };
       
       await onSubmit(dataToSubmit);
@@ -302,155 +231,67 @@ export function ProjectDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="pdf_folder">Catégorie du projet</Label>
-            <Select
-              value={formData.pdf_folder || "year1"}
-              onValueChange={(value) => handleSelectChange("pdf_folder", value)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Sélectionner une catégorie" />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(pdfFolders).map(([key, name]) => (
-                  <SelectItem key={key} value={key}>
-                    {name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <Label htmlFor="image">Image du projet</Label>
-              <div className="flex flex-col gap-4">
-                {formData.image_url && (
-                  <div className="relative w-full aspect-video overflow-hidden rounded-md">
-                    <img
-                      src={formData.image_url}
-                      alt="Preview"
-                      className="w-full h-full object-cover"
-                    />
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="icon"
-                      className="absolute top-2 right-2 h-7 w-7 rounded-full"
-                      onClick={() => setFormData(prev => ({ ...prev, image_url: null }))}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
+            <Label htmlFor="image">Image du projet</Label>
+            <div className="flex flex-col gap-4">
+              {formData.image_url && (
+                <div className="relative w-full aspect-video overflow-hidden rounded-md">
+                  <img
+                    src={formData.image_url}
+                    alt="Preview"
+                    className="w-full h-full object-cover"
+                  />
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="icon"
+                    className="absolute top-2 right-2 h-7 w-7 rounded-full"
+                    onClick={() => setFormData(prev => ({ ...prev, image_url: null }))}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+              <div className="border-2 border-dashed rounded-md p-6 flex flex-col items-center justify-center">
+                <Upload className="h-8 w-8 text-muted-foreground mb-2" />
+                <div className="text-center">
+                  <p className="text-sm font-medium">
+                    Glissez-déposez ou cliquez pour télécharger
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    PNG, JPG ou GIF (max. 4MB)
+                  </p>
+                </div>
+                <Input
+                  id="image"
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleImageChange}
+                />
+                <label htmlFor="image">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="mt-4"
+                  >
+                    Sélectionner un fichier
+                  </Button>
+                </label>
+                {imageFile && (
+                  <p className="text-sm text-muted-foreground mt-2">
+                    {imageFile.name}
+                  </p>
+                )}
+                {uploadProgress > 0 && uploadProgress < 100 && (
+                  <div className="w-full mt-2">
+                    <div className="bg-muted rounded-full h-2 overflow-hidden">
+                      <div
+                        className="h-full bg-primary"
+                        style={{ width: `${uploadProgress}%` }}
+                      />
+                    </div>
                   </div>
                 )}
-                <div className="border-2 border-dashed rounded-md p-6 flex flex-col items-center justify-center">
-                  <Upload className="h-8 w-8 text-muted-foreground mb-2" />
-                  <div className="text-center">
-                    <p className="text-sm font-medium">
-                      Glissez-déposez ou cliquez pour télécharger
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      PNG, JPG ou GIF (max. 4MB)
-                    </p>
-                  </div>
-                  <Input
-                    id="image"
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handleImageChange}
-                  />
-                  <label htmlFor="image">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="mt-4"
-                    >
-                      Sélectionner un fichier
-                    </Button>
-                  </label>
-                  {imageFile && (
-                    <p className="text-sm text-muted-foreground mt-2">
-                      {imageFile.name}
-                    </p>
-                  )}
-                  {uploadProgress > 0 && uploadProgress < 100 && (
-                    <div className="w-full mt-2">
-                      <div className="bg-muted rounded-full h-2 overflow-hidden">
-                        <div
-                          className="h-full bg-primary"
-                          style={{ width: `${uploadProgress}%` }}
-                        />
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="pdf">Document PDF</Label>
-              <div className="flex flex-col gap-4">
-                {formData.pdf_url && (
-                  <div className="relative w-full bg-secondary/10 p-4 rounded-md">
-                    <div className="flex items-center gap-3">
-                      <FileText className="h-10 w-10 text-primary" />
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium truncate">
-                          {formData.pdf_url.split('/').pop() || "Document PDF"}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {pdfFolders[formData.pdf_folder || 'year1']}
-                        </p>
-                      </div>
-                    </div>
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="icon"
-                      className="absolute top-2 right-2 h-7 w-7 rounded-full"
-                      onClick={() => setFormData(prev => ({ ...prev, pdf_url: null }))}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                )}
-                <div className="border-2 border-dashed rounded-md p-6 flex flex-col items-center justify-center">
-                  <FileText className="h-8 w-8 text-muted-foreground mb-2" />
-                  <div className="text-center">
-                    <p className="text-sm font-medium">
-                      Télécharger un document PDF
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Uniquement au format PDF
-                    </p>
-                  </div>
-                  <Input
-                    id="pdf"
-                    type="file"
-                    accept=".pdf"
-                    className="hidden"
-                    onChange={handlePdfChange}
-                  />
-                  <label htmlFor="pdf">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="mt-4"
-                    >
-                      Sélectionner un fichier
-                    </Button>
-                  </label>
-                  {pdfFile && (
-                    <p className="text-sm text-muted-foreground mt-2">
-                      {pdfFile.name}
-                    </p>
-                  )}
-                  {pdfUploadProgress > 0 && pdfUploadProgress < 100 && (
-                    <div className="w-full mt-2">
-                      <Progress value={pdfUploadProgress} className="h-2" />
-                    </div>
-                  )}
-                </div>
               </div>
             </div>
           </div>
