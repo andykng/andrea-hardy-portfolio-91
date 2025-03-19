@@ -39,22 +39,39 @@ export const typewriterAnimation = (
 /**
  * Reveal text on scroll
  * @param element - The element to animate
+ * @param options - Animation options
  */
-export const revealTextOnScroll = (element: string | Element) => {
+export const revealTextOnScroll = (
+  element: string | Element,
+  options?: {
+    y?: number;
+    stagger?: number;
+    duration?: number;
+    start?: string;
+  }
+) => {
+  const defaults = {
+    y: 100,
+    stagger: 0.02,
+    duration: 0.7,
+    start: "top 80%"
+  };
+  const config = { ...defaults, ...options };
+  
   const splitText = new SplitText(element, { type: "words,chars" });
   const chars = splitText.chars;
 
-  gsap.set(chars, { y: 100, opacity: 0 });
+  gsap.set(chars, { y: config.y, opacity: 0 });
   
   return gsap.to(chars, {
     y: 0,
     opacity: 1,
-    stagger: 0.02,
-    duration: 0.7,
+    stagger: config.stagger,
+    duration: config.duration,
     ease: "power2.out",
     scrollTrigger: {
       trigger: element,
-      start: "top 80%",
+      start: config.start,
       toggleActions: "play none none reverse"
     }
   });
@@ -105,3 +122,73 @@ export const smoothScrollTo = (trigger: string, target: string) => {
     });
   });
 };
+
+/**
+ * Animate skill bars
+ * @param element - The element containing skill bars
+ */
+export const animateSkillBars = (element: string | Element) => {
+  const skillBars = document.querySelectorAll(`${element} .skill-bar`);
+  
+  skillBars.forEach((bar) => {
+    const level = bar.getAttribute('data-level') || "0";
+    
+    gsap.set(bar, { width: 0 });
+    
+    ScrollTrigger.create({
+      trigger: bar,
+      start: "top 90%",
+      onEnter: () => {
+        gsap.to(bar, {
+          width: `${level}%`,
+          duration: 1.5,
+          ease: "power2.out"
+        });
+      },
+      once: true
+    });
+  });
+};
+
+/**
+ * Animate elements on page load with a staggered effect
+ * @param elements - Array of elements to animate
+ */
+export const staggeredPageLoad = (elements: string[]) => {
+  const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
+  
+  elements.forEach((el, index) => {
+    tl.fromTo(
+      el,
+      { y: 20, opacity: 0 },
+      { y: 0, opacity: 1, duration: 0.5, delay: index * 0.1 },
+      index === 0 ? "+=0.2" : "-=0.3"
+    );
+  });
+  
+  return tl;
+};
+
+/**
+ * Animate elements on scroll with a fade-in effect
+ * @param elements - Array of elements or selectors
+ */
+export const fadeInOnScroll = (elements: (string | Element)[]) => {
+  elements.forEach((el) => {
+    gsap.fromTo(
+      el,
+      { y: 30, opacity: 0 },
+      {
+        y: 0,
+        opacity: 1,
+        duration: 0.8,
+        scrollTrigger: {
+          trigger: el,
+          start: "top 85%",
+          toggleActions: "play none none reverse"
+        }
+      }
+    );
+  });
+};
+

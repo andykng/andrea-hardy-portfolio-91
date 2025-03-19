@@ -5,6 +5,7 @@ import { Briefcase, Calendar, MapPin } from "lucide-react";
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { revealTextOnScroll, staggeredPageLoad } from "@/lib/animations";
 
 // Register ScrollTrigger plugin
 gsap.registerPlugin(ScrollTrigger);
@@ -44,13 +45,14 @@ export default function ExperiencePage() {
 
   // Setup GSAP animations
   useEffect(() => {
-    // Title animation
-    gsap.from(titleRef.current, {
-      opacity: 0,
-      y: -30,
-      duration: 0.8,
-      ease: "power2.out"
-    });
+    // Title animation with text reveal
+    if (titleRef.current) {
+      revealTextOnScroll(titleRef.current, {
+        y: 30,
+        duration: 0.8,
+        start: "top 90%"
+      });
+    }
 
     // Description animation with text reveal
     gsap.from(descriptionRef.current, {

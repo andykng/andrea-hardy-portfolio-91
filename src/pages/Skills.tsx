@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { animateSkillBars, staggeredPageLoad, revealTextOnScroll } from "@/lib/animations";
 
 // Ensure GSAP plugins are registered
 gsap.registerPlugin(ScrollTrigger);
@@ -15,6 +16,7 @@ gsap.registerPlugin(ScrollTrigger);
 export default function SkillsPage() {
   const queryClient = useQueryClient();
   const pageTitleRef = useRef(null);
+  const pageDescriptionRef = useRef(null);
   const cardsRefs = useRef<Array<HTMLDivElement | null>>([]);
 
   const { data: skills } = useQuery({
@@ -77,13 +79,24 @@ export default function SkillsPage() {
 
   // GSAP Animations
   useEffect(() => {
-    // Title animation
-    gsap.from(pageTitleRef.current, {
-      opacity: 0,
-      y: -30,
-      duration: 0.8,
-      ease: "power2.out"
-    });
+    // Utilisons les fonctions d'animation améliorées
+    if (pageTitleRef.current) {
+      revealTextOnScroll(pageTitleRef.current, { 
+        y: 30,
+        duration: 0.8,
+        start: "top 90%" 
+      });
+    }
+
+    if (pageDescriptionRef.current) {
+      gsap.from(pageDescriptionRef.current, {
+        opacity: 0,
+        y: 20,
+        duration: 0.8,
+        delay: 0.3,
+        ease: "power2.out"
+      });
+    }
 
     // Animate skill cards
     cardsRefs.current.forEach((card, index) => {
@@ -105,26 +118,8 @@ export default function SkillsPage() {
       });
     });
 
-    // Animate skill bars
-    const skillBars = document.querySelectorAll('.skill-bar');
-    skillBars.forEach((bar) => {
-      const level = bar.getAttribute('data-level') || "0";
-      
-      gsap.set(bar, { width: 0 });
-      
-      ScrollTrigger.create({
-        trigger: bar,
-        start: "top 90%",
-        onEnter: () => {
-          gsap.to(bar, {
-            width: `${level}%`,
-            duration: 1.5,
-            ease: "power2.out"
-          });
-        },
-        once: true
-      });
-    });
+    // Animate skill bars using our utility function
+    animateSkillBars('.skill-card');
 
     return () => {
       // Clean up
@@ -150,10 +145,18 @@ export default function SkillsPage() {
       <div className="container mx-auto px-4 py-12">
         <h1 
           ref={pageTitleRef}
-          className="text-4xl font-bold text-center mb-12 text-primary"
+          className="text-4xl font-bold text-center mb-6 text-primary"
         >
           Mes Compétences
         </h1>
+        
+        <p
+          ref={pageDescriptionRef}
+          className="text-center text-muted-foreground max-w-2xl mx-auto mb-12"
+        >
+          Découvrez les compétences techniques que j'ai acquises au cours de ma formation et de mes expériences professionnelles.
+        </p>
+        
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {Object.entries(skillsByCategory || {}).map(([category, skills], index) => (
             <div

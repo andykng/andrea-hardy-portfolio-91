@@ -23,7 +23,9 @@ import {
   Trash, 
   Image, 
   Code,
-  X
+  X,
+  FileText,
+  Folder
 } from "lucide-react";
 import { ProjectDialog } from "@/components/admin/projects/ProjectDialog";
 import { supabase } from "@/integrations/supabase/client";
@@ -39,6 +41,16 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Progress } from "@/components/ui/progress";
+import { fadeInOnScroll } from "@/lib/animations";
+import { useEffect, useRef } from "react";
+
+// Structure des dossiers pour les PDF
+const PDF_FOLDERS = {
+  'year1': 'Projets BTS 1ère Année',
+  'year2': 'Projets BTS 2ème Année',
+  'other': 'Documents Externes'
+};
 
 type ProjectInsert = {
   title: string;
@@ -47,6 +59,8 @@ type ProjectInsert = {
   technologies?: string[] | null;
   github_url?: string | null;
   demo_url?: string | null;
+  pdf_url?: string | null;
+  pdf_folder?: string | null;
 }
 
 export default function ProjectsAdmin() {
@@ -57,6 +71,19 @@ export default function ProjectsAdmin() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [mode, setMode] = useState<"create" | "edit">("create");
+  const [pdfUploading, setPdfUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [selectedFolder, setSelectedFolder] = useState<string>("year1");
+  const projectsRef = useRef<Array<HTMLDivElement | null>>([]);
+
+  // Utiliser GSAP pour animer les éléments
+  useEffect(() => {
+    if (projects.length > 0 && !isLoading) {
+      // Animer les cartes de projets au chargement
+      const projectElements = projectsRef.current.filter(ref => ref !== null);
+      fadeInOnScroll(projectElements);
+    }
+  }, [projects, isLoading]);
 
   // Filtrer les projets selon le terme de recherche
   const filteredProjects = projects.filter(project => 
@@ -98,7 +125,9 @@ export default function ProjectsAdmin() {
         image_url: data.image_url || null,
         technologies: data.technologies || null,
         github_url: data.github_url || null,
-        demo_url: data.demo_url || null
+        demo_url: data.demo_url || null,
+        pdf_url: data.pdf_url || null,
+        pdf_folder: data.pdf_folder || null
       };
 
       const { error } = await supabase
@@ -174,6 +203,74 @@ export default function ProjectsAdmin() {
     }
   };
 
+  const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>, project: Project) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    
+    const file = e.target.files[0];
+    const fileExt = file.name.split('.').pop();
+    
+    if (fileExt !== 'pdf') {
+      toast({
+        title: "Format non supporté",
+        description: "Seuls les fichiers PDF sont acceptés",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setPdfUploading(true);
+    setUploadProgress(0);
+    
+    try {
+      const folder = selectedFolder;
+      const filePath = `projects/${folder}/${Date.now()}_${file.name}`;
+      
+      const { error: uploadError, data } = await supabase.storage
+        .from('documents')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('documents')
+        .getPublicUrl(filePath);
+      
+      // Mettez à jour le projet avec l'URL du PDF
+      const { error: updateError } = await supabase
+        .from('projects')
+        .update({ 
+          pdf_url: publicUrl,
+          pdf_folder: folder
+        })
+        .eq('id', project.id);
+      
+      if (updateError) throw updateError;
+      
+      setUploadProgress(100);
+      setTimeout(() => {
+        setPdfUploading(false);
+        setUploadProgress(0);
+      }, 1000);
+      
+      toast({
+        title: "PDF téléversé avec succès",
+        description: "Le document a été associé au projet",
+      });
+      
+      refetch();
+    } catch (error: any) {
+      toast({
+        title: "Erreur lors du téléversement",
+        description: error.message,
+        variant: "destructive",
+      });
+      setPdfUploading(false);
+    }
+  };
+
   return (
     <AdminLayout>
       <div className="space-y-6">
@@ -188,6 +285,30 @@ export default function ProjectsAdmin() {
             <Plus className="mr-2 h-4 w-4" />
             Ajouter un projet
           </Button>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          {Object.entries(PDF_FOLDERS).map(([key, name]) => (
+            <Card 
+              key={key} 
+              className={`cursor-pointer transition-all ${selectedFolder === key ? 'border-primary' : ''}`}
+              onClick={() => setSelectedFolder(key)}
+            >
+              <CardContent className="p-4 flex items-center gap-3">
+                <div className={`rounded-full p-2 ${selectedFolder === key ? 'bg-primary/20' : 'bg-muted'}`}>
+                  <Folder className={`h-5 w-5 ${selectedFolder === key ? 'text-primary' : 'text-muted-foreground'}`} />
+                </div>
+                <div>
+                  <h3 className="font-medium">{name}</h3>
+                  <p className="text-xs text-muted-foreground">
+                    {key === 'year1' && 'PDF des projets de 1ère année'}
+                    {key === 'year2' && 'PDF des projets de 2ème année'}
+                    {key === 'other' && 'Documents supplémentaires'}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
 
         <div className="flex items-center gap-4">
@@ -252,6 +373,7 @@ export default function ProjectsAdmin() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.05 }}
+                ref={el => projectsRef.current[i] = el}
               >
                 <Card className="group overflow-hidden flex flex-col h-full hover:shadow-md transition-shadow">
                   <div className="relative aspect-video overflow-hidden bg-muted">
@@ -305,6 +427,55 @@ export default function ProjectsAdmin() {
                         ))}
                       </div>
                     )}
+                    
+                    {/* PDF Upload Section */}
+                    <div className="mt-4">
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm font-medium">Document PDF</p>
+                        <label htmlFor={`pdf-upload-${project.id}`}>
+                          <div className="cursor-pointer text-xs text-primary hover:underline">
+                            {project.pdf_url ? 'Remplacer' : 'Ajouter'}
+                          </div>
+                          <input
+                            type="file"
+                            id={`pdf-upload-${project.id}`}
+                            accept=".pdf"
+                            className="hidden"
+                            onChange={(e) => handlePdfUpload(e, project)}
+                            disabled={pdfUploading}
+                          />
+                        </label>
+                      </div>
+                      
+                      {project.pdf_url ? (
+                        <div className="mt-2 flex items-center justify-between bg-secondary/10 p-2 rounded">
+                          <div className="flex items-center gap-2">
+                            <FileText className="h-4 w-4 text-primary" />
+                            <span className="text-xs truncate max-w-[150px]">
+                              {project.pdf_url.split('/').pop()}
+                            </span>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 w-7 p-0"
+                            onClick={() => window.open(project.pdf_url, '_blank')}
+                          >
+                            <ExternalLink className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ) : pdfUploading ? (
+                        <div className="mt-2">
+                          <Progress value={uploadProgress} className="h-2" />
+                          <p className="text-xs text-center mt-1">Téléversement {uploadProgress}%</p>
+                        </div>
+                      ) : (
+                        <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
+                          <FileText className="h-4 w-4" />
+                          <span>Aucun document associé</span>
+                        </div>
+                      )}
+                    </div>
                   </CardContent>
                   <CardFooter className="flex justify-between gap-4 pt-2">
                     <div className="flex space-x-2">
@@ -329,6 +500,12 @@ export default function ProjectsAdmin() {
                         </Button>
                       )}
                     </div>
+                    <Badge variant="outline" className="text-xs">
+                      {project.pdf_folder === 'year1' && 'BTS 1ère Année'}
+                      {project.pdf_folder === 'year2' && 'BTS 2ème Année'}
+                      {project.pdf_folder === 'other' && 'Document Externe'}
+                      {!project.pdf_folder && 'Non catégorisé'}
+                    </Badge>
                   </CardFooter>
                 </Card>
               </motion.div>
@@ -343,6 +520,7 @@ export default function ProjectsAdmin() {
         mode={mode}
         project={selectedProject}
         onSubmit={mode === "create" ? handleCreate : handleUpdate}
+        pdfFolders={PDF_FOLDERS}
       />
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
