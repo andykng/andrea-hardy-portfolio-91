@@ -1,48 +1,19 @@
+
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { useProjects, Project } from "@/hooks/use-projects";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { 
-  Card, 
-  CardContent, 
-  CardHeader, 
-  CardTitle, 
-  CardDescription, 
-  CardFooter 
-} from "@/components/ui/card";
-import { 
-  FolderKanban, 
-  Plus, 
-  Search, 
-  Github, 
-  ExternalLink, 
-  Edit, 
-  Trash, 
-  Image, 
-  Code,
-  X,
-  FileText,
-  Folder
-} from "lucide-react";
-import { ProjectDialog } from "@/components/admin/projects/ProjectDialog";
+import { Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { Badge } from "@/components/ui/badge";
-import { motion } from "framer-motion";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Progress } from "@/components/ui/progress";
 import { fadeInOnScroll } from "@/lib/animations";
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
+import { ProjectDialog } from "@/components/admin/projects/ProjectDialog";
+import { DeleteConfirmation } from "@/components/admin/DeleteConfirmation";
+import { ProjectCard } from "@/components/admin/projects/ProjectCard";
+import { ProjectFilters } from "@/components/admin/projects/ProjectFilters";
+import { ProjectsEmptyState } from "@/components/admin/projects/ProjectsEmptyState";
+import { ProjectsLoadingState } from "@/components/admin/projects/ProjectsLoadingState";
 
 // Structure des dossiers pour les PDF
 const PDF_FOLDERS = {
@@ -101,6 +72,8 @@ export default function ProjectsAdmin() {
     setSelectedProject(project);
     setDeleteDialogOpen(true);
   };
+
+  const clearSearch = () => setSearchTerm("");
 
   const handleCreate = async (data: Partial<Project>) => {
     try {
@@ -194,74 +167,6 @@ export default function ProjectsAdmin() {
     }
   };
 
-  const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>, project: Project) => {
-    if (!e.target.files || e.target.files.length === 0) return;
-    
-    const file = e.target.files[0];
-    const fileExt = file.name.split('.').pop();
-    
-    if (fileExt !== 'pdf') {
-      toast({
-        title: "Format non supporté",
-        description: "Seuls les fichiers PDF sont acceptés",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    setPdfUploading(true);
-    setUploadProgress(0);
-    
-    try {
-      const folder = selectedFolder;
-      const filePath = `projects/${folder}/${Date.now()}_${file.name}`;
-      
-      const { error: uploadError, data } = await supabase.storage
-        .from('documents')
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: false
-        });
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('documents')
-        .getPublicUrl(filePath);
-      
-      // Mettez à jour le projet avec l'URL du PDF
-      const { error: updateError } = await supabase
-        .from('projects')
-        .update({ 
-          pdf_url: publicUrl,
-          pdf_folder: folder
-        })
-        .eq('id', project.id);
-      
-      if (updateError) throw updateError;
-      
-      setUploadProgress(100);
-      setTimeout(() => {
-        setPdfUploading(false);
-        setUploadProgress(0);
-      }, 1000);
-      
-      toast({
-        title: "PDF téléversé avec succès",
-        description: "Le document a été associé au projet",
-      });
-      
-      refetch();
-    } catch (error: any) {
-      toast({
-        title: "Erreur lors du téléversement",
-        description: error.message,
-        variant: "destructive",
-      });
-      setPdfUploading(false);
-    }
-  };
-
   return (
     <AdminLayout>
       <div className="space-y-6">
@@ -278,228 +183,40 @@ export default function ProjectsAdmin() {
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          {Object.entries(PDF_FOLDERS).map(([key, name]) => (
-            <Card 
-              key={key} 
-              className={`cursor-pointer transition-all ${selectedFolder === key ? 'border-primary' : ''}`}
-              onClick={() => setSelectedFolder(key)}
-            >
-              <CardContent className="p-4 flex items-center gap-3">
-                <div className={`rounded-full p-2 ${selectedFolder === key ? 'bg-primary/20' : 'bg-muted'}`}>
-                  <Folder className={`h-5 w-5 ${selectedFolder === key ? 'text-primary' : 'text-muted-foreground'}`} />
-                </div>
-                <div>
-                  <h3 className="font-medium">{name}</h3>
-                  <p className="text-xs text-muted-foreground">
-                    {key === 'year1' && 'PDF des projets de 1ère année'}
-                    {key === 'year2' && 'PDF des projets de 2ème année'}
-                    {key === 'other' && 'Documents supplémentaires'}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        <div className="flex items-center gap-4">
-          <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Rechercher un projet..."
-              className="pl-9"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-          <div className="text-muted-foreground">
-            {filteredProjects.length} projet{filteredProjects.length !== 1 ? 's' : ''}
-          </div>
-        </div>
+        <ProjectFilters 
+          pdfFolders={PDF_FOLDERS}
+          selectedFolder={selectedFolder}
+          setSelectedFolder={setSelectedFolder}
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          filteredCount={filteredProjects.length}
+        />
 
         {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[1, 2, 3].map((i) => (
-              <Card key={i} className="overflow-hidden">
-                <div className="aspect-video bg-muted animate-pulse" />
-                <CardHeader>
-                  <div className="h-6 bg-muted rounded animate-pulse" />
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <div className="h-4 bg-muted rounded animate-pulse" />
-                    <div className="h-4 bg-muted rounded animate-pulse w-2/3" />
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          <ProjectsLoadingState />
         ) : filteredProjects.length === 0 ? (
-          <Card className="p-8 text-center">
-            <div className="mx-auto w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
-              <FolderKanban className="h-8 w-8 text-muted-foreground" />
-            </div>
-            <h3 className="text-xl font-semibold mb-2">Aucun projet trouvé</h3>
-            <p className="text-muted-foreground max-w-md mx-auto mb-6">
-              {searchTerm 
-                ? "Aucun projet ne correspond à votre recherche." 
-                : "Commencez par ajouter votre premier projet pour le présenter dans votre portfolio."}
-            </p>
-            {searchTerm ? (
-              <Button variant="outline" onClick={() => setSearchTerm("")}>
-                Effacer la recherche
-              </Button>
-            ) : (
-              <Button onClick={openCreateDialog}>
-                <Plus className="mr-2 h-4 w-4" />
-                Ajouter un projet
-              </Button>
-            )}
-          </Card>
+          <ProjectsEmptyState 
+            searchTerm={searchTerm}
+            clearSearch={clearSearch}
+            openCreateDialog={openCreateDialog}
+          />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredProjects.map((project, i) => (
-              <motion.div
+              <ProjectCard
                 key={project.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.05 }}
-                ref={el => projectsRef.current[i] = el}
-              >
-                <Card className="group overflow-hidden flex flex-col h-full hover:shadow-md transition-shadow">
-                  <div className="relative aspect-video overflow-hidden bg-muted">
-                    {project.image_url ? (
-                      <img 
-                        src={project.image_url} 
-                        alt={project.title} 
-                        className="w-full h-full object-cover transition-transform group-hover:scale-105"
-                      />
-                    ) : (
-                      <div className="flex items-center justify-center w-full h-full text-muted-foreground">
-                        <Image className="h-8 w-8" />
-                      </div>
-                    )}
-                    <div className="absolute top-2 right-2 flex space-x-1">
-                      <Button
-                        size="icon"
-                        variant="secondary"
-                        className="h-8 w-8 bg-white/80 backdrop-blur-sm hover:bg-white"
-                        onClick={() => openEditDialog(project)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        size="icon"
-                        variant="secondary"
-                        className="h-8 w-8 bg-white/80 backdrop-blur-sm hover:bg-white/90 hover:text-red-600"
-                        onClick={() => openDeleteDialog(project)}
-                      >
-                        <Trash className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      {project.title}
-                    </CardTitle>
-                    {project.description && (
-                      <CardDescription className="line-clamp-2">
-                        {project.description}
-                      </CardDescription>
-                    )}
-                  </CardHeader>
-                  <CardContent className="flex-grow">
-                    {project.technologies && project.technologies.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-2">
-                        {project.technologies.map((tech, i) => (
-                          <Badge key={i} variant="secondary" className="bg-secondary/20">
-                            {tech}
-                          </Badge>
-                        ))}
-                      </div>
-                    )}
-                    
-                    {/* PDF Upload Section */}
-                    <div className="mt-4">
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm font-medium">Document PDF</p>
-                        <label htmlFor={`pdf-upload-${project.id}`}>
-                          <div className="cursor-pointer text-xs text-primary hover:underline">
-                            {project.pdf_url ? 'Remplacer' : 'Ajouter'}
-                          </div>
-                          <input
-                            type="file"
-                            id={`pdf-upload-${project.id}`}
-                            accept=".pdf"
-                            className="hidden"
-                            onChange={(e) => handlePdfUpload(e, project)}
-                            disabled={pdfUploading}
-                          />
-                        </label>
-                      </div>
-                      
-                      {project.pdf_url ? (
-                        <div className="mt-2 flex items-center justify-between bg-secondary/10 p-2 rounded">
-                          <div className="flex items-center gap-2">
-                            <FileText className="h-4 w-4 text-primary" />
-                            <span className="text-xs truncate max-w-[150px]">
-                              {project.pdf_url.split('/').pop()}
-                            </span>
-                          </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-7 w-7 p-0"
-                            onClick={() => window.open(project.pdf_url, '_blank')}
-                          >
-                            <ExternalLink className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      ) : pdfUploading ? (
-                        <div className="mt-2">
-                          <Progress value={uploadProgress} className="h-2" />
-                          <p className="text-xs text-center mt-1">Téléversement {uploadProgress}%</p>
-                        </div>
-                      ) : (
-                        <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
-                          <FileText className="h-4 w-4" />
-                          <span>Aucun document associé</span>
-                        </div>
-                      )}
-                    </div>
-                  </CardContent>
-                  <CardFooter className="flex justify-between gap-4 pt-2">
-                    <div className="flex space-x-2">
-                      {project.github_url && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="gap-1"
-                          onClick={() => window.open(project.github_url, "_blank")}
-                        >
-                          <Github className="h-4 w-4" />
-                        </Button>
-                      )}
-                      {project.demo_url && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="gap-1"
-                          onClick={() => window.open(project.demo_url, "_blank")}
-                        >
-                          <ExternalLink className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
-                    <Badge variant="outline" className="text-xs">
-                      {project.pdf_folder === 'year1' && 'BTS 1ère Année'}
-                      {project.pdf_folder === 'year2' && 'BTS 2ème Année'}
-                      {project.pdf_folder === 'other' && 'Document Externe'}
-                      {!project.pdf_folder && 'Non catégorisé'}
-                    </Badge>
-                  </CardFooter>
-                </Card>
-              </motion.div>
+                project={project}
+                index={i}
+                onEdit={openEditDialog}
+                onDelete={openDeleteDialog}
+                selectedFolder={selectedFolder}
+                pdfUploading={pdfUploading}
+                uploadProgress={uploadProgress}
+                setPdfUploading={setPdfUploading}
+                setUploadProgress={setUploadProgress}
+                refetch={refetch}
+                forwardedRef={el => projectsRef.current[i] = el}
+              />
             ))}
           </div>
         )}
@@ -514,25 +231,13 @@ export default function ProjectsAdmin() {
         pdfFolders={PDF_FOLDERS}
       />
 
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Cette action est irréversible. Cela supprimera définitivement ce projet de votre portfolio.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Annuler</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-red-600 hover:bg-red-700"
-              onClick={handleDelete}
-            >
-              Supprimer
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DeleteConfirmation
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={handleDelete}
+        title="Êtes-vous sûr ?"
+        description="Cette action est irréversible. Cela supprimera définitivement ce projet de votre portfolio."
+      />
     </AdminLayout>
   );
 }
