@@ -52,6 +52,7 @@ const PDF_FOLDERS = {
   'other': 'Documents Externes'
 };
 
+// Make sure the ProjectInsert type includes all the properties needed
 type ProjectInsert = {
   title: string;
   description?: string | null;
