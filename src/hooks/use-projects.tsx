@@ -11,6 +11,8 @@ export interface Project {
   technologies: string[] | null;
   github_url: string | null;
   demo_url: string | null;
+  pdf_url: string | null;
+  pdf_folder: string | null;
   created_at: string;
   updated_at: string;
 }

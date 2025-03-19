@@ -51,7 +51,7 @@ const PDF_FOLDERS = {
   'other': 'Documents Externes'
 };
 
-// Simplified ProjectInsert type
+// Updated ProjectInsert type to include pdf fields
 type ProjectInsert = {
   title: string;
   description?: string | null;
@@ -59,6 +59,8 @@ type ProjectInsert = {
   technologies?: string[] | null;
   github_url?: string | null;
   demo_url?: string | null;
+  pdf_url?: string | null;
+  pdf_folder?: string | null;
 }
 
 export default function ProjectsAdmin() {
@@ -117,13 +119,15 @@ export default function ProjectsAdmin() {
       }
 
       // Cast to the correct type for insertion
-      const projectData = {
+      const projectData: ProjectInsert = {
         title: data.title,
         description: data.description || null,
         image_url: data.image_url || null,
         technologies: data.technologies || null,
         github_url: data.github_url || null,
-        demo_url: data.demo_url || null
+        demo_url: data.demo_url || null,
+        pdf_url: data.pdf_url || null,
+        pdf_folder: data.pdf_folder || null
       };
 
       const { error } = await supabase
