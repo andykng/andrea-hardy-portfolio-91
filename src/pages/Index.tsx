@@ -1,6 +1,6 @@
 
 import { Layout } from "@/components/Layout";
-import { motion } from "framer-motion";
+import { motion, useAnimation } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,9 +15,54 @@ import {
   Download 
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
 
 export default function IndexPage() {
   const navigate = useNavigate();
+  const mainTitleRef = useRef<HTMLHeadingElement>(null);
+  const descriptionRef = useRef<HTMLParagraphElement>(null);
+  
+  const [mainTitleText] = useState("Créer des expériences web et des infrastructure exceptionnelles");
+  const [descriptionText] = useState(
+    "Administrateur systèmes et réseaux passionné, j'ai une approche unique du développement. Toujours en quête d'innovation, j'allie automatisation, sécurité et performance pour concevoir des infrastructures robustes et adaptées aux besoins actuels."
+  );
+  const [displayedMainTitle, setDisplayedMainTitle] = useState("");
+  const [displayedDescription, setDisplayedDescription] = useState("");
+  const [mainTitleComplete, setMainTitleComplete] = useState(false);
+  
+  // Handle typewriter effect
+  useEffect(() => {
+    let mainTitleIndex = 0;
+    let descriptionIndex = 0;
+    
+    // Type main title first
+    const mainTitleInterval = setInterval(() => {
+      if (mainTitleIndex <= mainTitleText.length) {
+        setDisplayedMainTitle(mainTitleText.substring(0, mainTitleIndex));
+        mainTitleIndex++;
+      } else {
+        clearInterval(mainTitleInterval);
+        setMainTitleComplete(true);
+      }
+    }, 30); // Speed of typing (milliseconds)
+    
+    // Start typing description after main title is complete
+    const descriptionInterval = setInterval(() => {
+      if (!mainTitleComplete) return;
+      
+      if (descriptionIndex <= descriptionText.length) {
+        setDisplayedDescription(descriptionText.substring(0, descriptionIndex));
+        descriptionIndex++;
+      } else {
+        clearInterval(descriptionInterval);
+      }
+    }, 15); // Speed of typing (milliseconds)
+    
+    return () => {
+      clearInterval(mainTitleInterval);
+      clearInterval(descriptionInterval);
+    };
+  }, [mainTitleText, descriptionText, mainTitleComplete]);
   
   const { data: latestProjects } = useQuery({
     queryKey: ['latest-projects'],
@@ -85,12 +130,12 @@ export default function IndexPage() {
                 Administrateur Systèmes & Réseaux | Développeur IA-Assisté
               </motion.div>
               
-              <h1 className="text-4xl md:text-6xl font-bold tracking-tight leading-tight">
-                Créer des expériences web et des infrastructure <span className="text-primary">exceptionnelles</span>
+              <h1 ref={mainTitleRef} className="text-4xl md:text-6xl font-bold tracking-tight leading-tight">
+                {displayedMainTitle}<span className="text-primary">{displayedMainTitle.length === mainTitleText.length ? "" : "|"}</span>
               </h1>
               
-              <p className="text-xl text-muted-foreground">
-               Administrateur systèmes et réseaux passionné, j’ai une approche unique du développement. Toujours en quête d’innovation, j’allie automatisation, sécurité et performance pour concevoir des infrastructures robustes et adaptées aux besoins actuels.
+              <p ref={descriptionRef} className="text-xl text-muted-foreground">
+                {displayedDescription}<span className="text-primary">{mainTitleComplete && displayedDescription.length < descriptionText.length ? "|" : ""}</span>
               </p>
               
               <div className="flex flex-wrap justify-center md:justify-start gap-4 pt-4">
