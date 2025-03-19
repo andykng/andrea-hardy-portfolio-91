@@ -51,17 +51,8 @@ const PDF_FOLDERS = {
   'other': 'Documents Externes'
 };
 
-// Updated ProjectInsert type to include pdf fields
-type ProjectInsert = {
-  title: string;
-  description?: string | null;
-  image_url?: string | null;
-  technologies?: string[] | null;
-  github_url?: string | null;
-  demo_url?: string | null;
-  pdf_url?: string | null;
-  pdf_folder?: string | null;
-}
+// Define ProjectInsert type to match the Project interface structure
+type ProjectInsert = Omit<Project, 'id' | 'created_at' | 'updated_at'>;
 
 export default function ProjectsAdmin() {
   const { toast } = useToast();
