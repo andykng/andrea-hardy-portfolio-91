@@ -2,10 +2,9 @@
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { TextPlugin } from 'gsap/TextPlugin';
-import { SplitText } from 'gsap/SplitText';
 
 // Register GSAP plugins
-gsap.registerPlugin(ScrollTrigger, TextPlugin, SplitText);
+gsap.registerPlugin(ScrollTrigger, TextPlugin);
 
 /**
  * Animate text with a typewriter effect
@@ -58,23 +57,62 @@ export const revealTextOnScroll = (
   };
   const config = { ...defaults, ...options };
   
-  const splitText = new SplitText(element, { type: "words,chars" });
-  const chars = splitText.chars;
-
-  gsap.set(chars, { y: config.y, opacity: 0 });
+  // Instead of using SplitText, we'll manually split the text if it's an element
+  const targetElement = typeof element === 'string' ? document.querySelector(element) : element;
+  if (!targetElement) return;
   
-  return gsap.to(chars, {
-    y: 0,
-    opacity: 1,
-    stagger: config.stagger,
-    duration: config.duration,
-    ease: "power2.out",
-    scrollTrigger: {
-      trigger: element,
-      start: config.start,
-      toggleActions: "play none none reverse"
+  // Create wrapper spans for each character
+  if (targetElement instanceof HTMLElement) {
+    const text = targetElement.innerText;
+    targetElement.innerHTML = '';
+    
+    // Create a wrapper for all characters
+    const wrapper = document.createElement('span');
+    wrapper.style.display = 'inline-block';
+    
+    // Create spans for each character
+    const chars = text.split('').map(char => {
+      const span = document.createElement('span');
+      span.style.display = 'inline-block';
+      span.textContent = char;
+      wrapper.appendChild(span);
+      return span;
+    });
+    
+    targetElement.appendChild(wrapper);
+    
+    // Animate each character span
+    gsap.set(chars, { y: config.y, opacity: 0 });
+    
+    return gsap.to(chars, {
+      y: 0,
+      opacity: 1,
+      stagger: config.stagger,
+      duration: config.duration,
+      ease: "power2.out",
+      scrollTrigger: {
+        trigger: targetElement,
+        start: config.start,
+        toggleActions: "play none none reverse"
+      }
+    });
+  }
+  
+  // If not an element, fallback to simple opacity animation
+  return gsap.fromTo(element, 
+    { y: config.y, opacity: 0 },
+    {
+      y: 0,
+      opacity: 1,
+      duration: config.duration,
+      ease: "power2.out",
+      scrollTrigger: {
+        trigger: element,
+        start: config.start,
+        toggleActions: "play none none reverse"
+      }
     }
-  });
+  );
 };
 
 /**
@@ -191,4 +229,3 @@ export const fadeInOnScroll = (elements: (string | Element)[]) => {
     );
   });
 };
-

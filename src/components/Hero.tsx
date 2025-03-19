@@ -1,4 +1,3 @@
-
 import { ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
@@ -43,7 +42,6 @@ export const Hero = () => {
   const heroSectionRef = useRef(null);
 
   useEffect(() => {
-    // Main title animation
     gsap.from(titleRef.current, {
       duration: 1.2,
       opacity: 0,
@@ -51,7 +49,6 @@ export const Hero = () => {
       ease: "power3.out",
     });
 
-    // Subtitle text reveal animation
     gsap.to(subtitleRef.current, {
       duration: 2,
       text: {
@@ -61,7 +58,6 @@ export const Hero = () => {
       delay: 0.5
     });
 
-    // CTA buttons animation
     gsap.from(ctaRef.current?.children, {
       duration: 0.8,
       opacity: 0,
@@ -71,7 +67,6 @@ export const Hero = () => {
       delay: 1
     });
 
-    // Chevron animation
     gsap.to(chevronRef.current, {
       y: 10,
       repeat: -1,
@@ -80,7 +75,6 @@ export const Hero = () => {
       ease: "power1.inOut"
     });
 
-    // Certifications title reveal on scroll
     ScrollTrigger.create({
       trigger: certTitleRef.current,
       start: "top 80%",
@@ -94,7 +88,6 @@ export const Hero = () => {
       }
     });
 
-    // Parallax effect on hero section
     ScrollTrigger.create({
       trigger: heroSectionRef.current,
       start: "top top",
@@ -111,7 +104,6 @@ export const Hero = () => {
     });
 
     return () => {
-      // Clean up animations on component unmount
       ScrollTrigger.getAll().forEach(trigger => trigger.kill());
       gsap.killTweensOf([titleRef.current, subtitleRef.current, ctaRef.current, chevronRef.current, certTitleRef.current]);
     };
