@@ -113,11 +113,12 @@ export const saveProjectsConfig = async (projects: ProjectPDF[]) => {
   try {
     const config: ProjectsConfig = { projects };
     
+    // Cast the config to Json explicitly to satisfy TypeScript
     const { data, error } = await supabase
       .from('projects_config')
       .upsert({ 
         id: 1, 
-        config 
+        config: config as unknown as Json
       }, { onConflict: 'id' });
     
     if (error) throw error;
