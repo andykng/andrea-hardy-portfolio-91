@@ -282,6 +282,27 @@ export type Database = {
         }
         Relationships: []
       }
+      projects_config: {
+        Row: {
+          config: Json
+          created_at: string | null
+          id: number
+          updated_at: string | null
+        }
+        Insert: {
+          config?: Json
+          created_at?: string | null
+          id: number
+          updated_at?: string | null
+        }
+        Update: {
+          config?: Json
+          created_at?: string | null
+          id?: number
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       skills: {
         Row: {
           category: string

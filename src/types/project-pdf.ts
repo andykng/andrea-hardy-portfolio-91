@@ -10,3 +10,11 @@ export interface ProjectPDF {
 export interface ProjectsConfig {
   projects: ProjectPDF[];
 }
+
+// This type matches the structure in the Supabase table
+export interface ProjectsConfigTable {
+  id: number;
+  config: ProjectsConfig;
+  created_at: string;
+  updated_at: string;
+}

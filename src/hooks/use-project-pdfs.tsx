@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { ProjectPDF, ProjectsConfig } from "@/types/project-pdf";
+import { ProjectPDF, ProjectsConfig, ProjectsConfigTable } from "@/types/project-pdf";
 import { supabase } from "@/integrations/supabase/client";
 
 // Fonction pour formater le titre à partir du nom de fichier
@@ -37,7 +37,8 @@ export const useProjectPDFs = () => {
         if (configError && configError.code !== 'PGRST116') {
           console.error("Erreur lors de la récupération de la configuration:", configError);
         } else if (configData) {
-          config = configData.config as ProjectsConfig;
+          const typedConfigData = configData as unknown as ProjectsConfigTable;
+          config = typedConfigData.config;
         }
 
         // Liste des projets de l'année 1
@@ -114,7 +115,10 @@ export const saveProjectsConfig = async (projects: ProjectPDF[]) => {
     
     const { data, error } = await supabase
       .from('projects_config')
-      .upsert({ id: 1, config }, { onConflict: 'id' });
+      .upsert({ 
+        id: 1, 
+        config 
+      }, { onConflict: 'id' });
     
     if (error) throw error;
     
