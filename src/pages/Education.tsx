@@ -1,13 +1,14 @@
 
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Award, School, Calendar, Clock, Building, ExternalLink, User, CheckCircle } from "lucide-react";
+import { Award, School, Calendar, Clock, Building, ExternalLink, User, CheckCircle, FileText, Badge, Certificate } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { useEducation, useCertifications } from "@/hooks/use-education";
-import { Badge } from "@/components/ui/badge";
+import { Badge as BadgeComponent } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function EducationPage() {
   const { data: educations = [], isLoading: isEducationLoading } = useEducation();
@@ -36,21 +37,21 @@ export default function EducationPage() {
           </p>
         </motion.div>
 
-        <div className="grid md:grid-cols-12 gap-8 max-w-6xl mx-auto">
-          <motion.div
-            className="md:col-span-7 space-y-8"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-          >
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <School className="h-5 w-5 text-primary" />
-                <h2 className="text-2xl font-bold">Parcours académique</h2>
-              </div>
-              <p className="text-muted-foreground">Mon cursus de formation et diplômes</p>
-            </div>
+        <Tabs defaultValue="education" className="max-w-6xl mx-auto">
+          <div className="flex justify-center mb-8">
+            <TabsList className="grid grid-cols-2 w-full max-w-md">
+              <TabsTrigger value="education" className="flex items-center gap-2">
+                <School className="h-4 w-4" />
+                Parcours
+              </TabsTrigger>
+              <TabsTrigger value="certifications" className="flex items-center gap-2">
+                <Award className="h-4 w-4" />
+                Certifications
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
+          <TabsContent value="education">
             {isEducationLoading ? (
               <div className="space-y-6">
                 {[1, 2].map((i) => (
@@ -109,9 +110,9 @@ export default function EducationPage() {
                           </p>
                         )}
                         {education.degree && (
-                          <Badge className="self-start mt-2" variant="outline">
+                          <BadgeComponent className="self-start mt-2" variant="outline">
                             {education.degree}
-                          </Badge>
+                          </BadgeComponent>
                         )}
                       </div>
                     </div>
@@ -121,26 +122,13 @@ export default function EducationPage() {
                 ))}
               </div>
             )}
-          </motion.div>
+          </TabsContent>
 
-          <motion.div
-            className="md:col-span-5 space-y-8"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-          >
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <Award className="h-5 w-5 text-primary" />
-                <h2 className="text-2xl font-bold">Certifications</h2>
-              </div>
-              <p className="text-muted-foreground">Mes certifications professionnelles</p>
-            </div>
-
+          <TabsContent value="certifications">
             {isCertificationLoading ? (
-              <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className="h-24 bg-muted rounded-lg animate-pulse" />
+                  <div key={i} className="h-32 bg-muted rounded-lg animate-pulse" />
                 ))}
               </div>
             ) : certifications.length === 0 ? (
@@ -150,65 +138,73 @@ export default function EducationPage() {
                 </CardContent>
               </Card>
             ) : (
-              <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {certifications.map((certification, index) => (
                   <motion.div
                     key={certification.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2 + index * 0.1 }}
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.1 + index * 0.1 }}
                   >
-                    <Card className="overflow-hidden hover:shadow-md transition-shadow">
-                      <div className="flex items-center p-4">
-                        <div className="mr-4 flex-shrink-0">
-                          {certification.logo_url ? (
-                            <div className="w-14 h-14 rounded overflow-hidden flex items-center justify-center bg-white">
-                              <img
-                                src={certification.logo_url}
-                                alt={certification.title}
-                                className="w-12 h-12 object-contain"
-                              />
+                    <Card className="h-full overflow-hidden hover:shadow-lg transition-shadow border-t-4 border-primary">
+                      <CardContent className="p-6">
+                        <div className="flex flex-col h-full">
+                          <div className="flex items-center gap-4 mb-4">
+                            {certification.logo_url ? (
+                              <div className="w-16 h-16 rounded overflow-hidden flex items-center justify-center bg-white border">
+                                <img
+                                  src={certification.logo_url}
+                                  alt={certification.title}
+                                  className="w-14 h-14 object-contain"
+                                />
+                              </div>
+                            ) : (
+                              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center">
+                                <Award className="h-8 w-8 text-primary" />
+                              </div>
+                            )}
+                            <div>
+                              <h3 className="font-bold text-lg">{certification.title}</h3>
+                              <p className="text-sm text-muted-foreground">{certification.issuer}</p>
                             </div>
-                          ) : (
-                            <div className="w-14 h-14 rounded bg-primary/10 flex items-center justify-center">
-                              <Award className="h-8 w-8 text-primary" />
-                            </div>
-                          )}
+                          </div>
+                          
+                          <div className="space-y-2 mt-auto">
+                            {certification.date && (
+                              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                <Calendar className="h-4 w-4 text-primary/70" />
+                                <span>Obtenue en {formatDate(certification.date)}</span>
+                              </div>
+                            )}
+                            
+                            {certification.expiry_date && (
+                              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                <Clock className="h-4 w-4 text-primary/70" />
+                                <span>Expire en {formatDate(certification.expiry_date)}</span>
+                              </div>
+                            )}
+                            
+                            {certification.credential_url && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="mt-4 w-full"
+                                onClick={() => window.open(certification.credential_url!, "_blank")}
+                              >
+                                <ExternalLink className="h-4 w-4 mr-2" />
+                                Vérifier le certificat
+                              </Button>
+                            )}
+                          </div>
                         </div>
-                        <div className="flex-1">
-                          <h3 className="font-semibold">{certification.title}</h3>
-                          <p className="text-sm text-muted-foreground">{certification.issuer}</p>
-                          {certification.date && (
-                            <div className="flex items-center mt-1 text-xs text-muted-foreground">
-                              <Calendar className="h-3 w-3 mr-1" />
-                              <span>{formatDate(certification.date)}</span>
-                              {certification.expiry_date && (
-                                <span className="ml-2">
-                                  (expire: {formatDate(certification.expiry_date)})
-                                </span>
-                              )}
-                            </div>
-                          )}
-                          {certification.credential_url && (
-                            <Button
-                              variant="link"
-                              size="sm"
-                              className="p-0 h-auto text-xs mt-1"
-                              onClick={() => window.open(certification.credential_url!, "_blank")}
-                            >
-                              <ExternalLink className="h-3 w-3 mr-1" />
-                              Voir le certificat
-                            </Button>
-                          )}
-                        </div>
-                      </div>
+                      </CardContent>
                     </Card>
                   </motion.div>
                 ))}
               </div>
             )}
-          </motion.div>
-        </div>
+          </TabsContent>
+        </Tabs>
       </div>
     </Layout>
   );

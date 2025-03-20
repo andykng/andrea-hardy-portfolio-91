@@ -68,7 +68,8 @@ export const useProjectPDFs = () => {
                 title: formatTitle(filename),
                 year: 1 as const,
                 path: `/project année 1/${filename}`,
-                icon: existingProject?.icon || 'file'
+                icon: existingProject?.icon || 'fileText',
+                category: existingProject?.category
               });
             }
           }
@@ -104,7 +105,8 @@ export const useProjectPDFs = () => {
                 title: formatTitle(filename),
                 year: 2 as const,
                 path: `/project année 2/${filename}`,
-                icon: existingProject?.icon || 'file'
+                icon: existingProject?.icon || 'fileText',
+                category: existingProject?.category
               });
             }
           }
@@ -145,7 +147,8 @@ export const useProjectPDFs = () => {
               title: formatTitle(filename),
               year: 1 as const,
               path: `/project année 1/${filename}`,
-              icon: existingProject?.icon || 'file'
+              icon: existingProject?.icon || 'fileText',
+              category: existingProject?.category
             });
           }
           
@@ -178,7 +181,8 @@ export const useProjectPDFs = () => {
               title: formatTitle(filename),
               year: 2 as const,
               path: `/project année 2/${filename}`,
-              icon: existingProject?.icon || 'file'
+              icon: existingProject?.icon || 'fileText',
+              category: existingProject?.category
             });
           }
           

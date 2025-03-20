@@ -5,6 +5,7 @@ export interface ProjectPDF {
   year: 1 | 2;
   path: string;
   icon?: string;
+  category?: string;
 }
 
 export interface ProjectsConfig {

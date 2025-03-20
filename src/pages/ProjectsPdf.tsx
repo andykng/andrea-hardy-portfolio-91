@@ -7,7 +7,25 @@ import { Button } from "@/components/ui/button";
 import { Layout } from "@/components/Layout";
 import { useProjectPDFs } from "@/hooks/use-project-pdfs";
 import { Input } from "@/components/ui/input";
-import { Search, File, FileText, BookOpen, Book, Archive, FolderOpen, Folder, Download, Eye } from "lucide-react";
+import { 
+  Search, 
+  File, 
+  FileText, 
+  BookOpen, 
+  Book, 
+  Archive, 
+  FolderOpen, 
+  Folder, 
+  Download, 
+  Eye, 
+  FileCode,
+  Server,
+  Shield,
+  Wifi,
+  Database,
+  Lock,
+  Network
+} from "lucide-react";
 
 export default function ProjectsPdfPage() {
   const { projects, loading, error } = useProjectPDFs();
@@ -19,14 +37,21 @@ export default function ProjectsPdfPage() {
     const iconMap: Record<string, JSX.Element> = {
       file: <File className="h-5 w-5" />,
       fileText: <FileText className="h-5 w-5" />,
+      fileCode: <FileCode className="h-5 w-5" />,
       bookOpen: <BookOpen className="h-5 w-5" />,
       book: <Book className="h-5 w-5" />,
       archive: <Archive className="h-5 w-5" />,
       folder: <Folder className="h-5 w-5" />,
       folderOpen: <FolderOpen className="h-5 w-5" />,
+      server: <Server className="h-5 w-5" />,
+      shield: <Shield className="h-5 w-5" />,
+      wifi: <Wifi className="h-5 w-5" />,
+      database: <Database className="h-5 w-5" />,
+      lock: <Lock className="h-5 w-5" />,
+      network: <Network className="h-5 w-5" />,
     };
     
-    return iconMap[iconName] || <File className="h-5 w-5" />;
+    return iconMap[iconName] || <FileText className="h-5 w-5" />;
   };
 
   // Filtrer les projets selon le terme de recherche
@@ -44,6 +69,13 @@ export default function ProjectsPdfPage() {
     activeTab === "year1" ? year1Projects : 
     year2Projects;
 
+  // Obtenir un dégradé de couleur en fonction de l'année
+  const getGradientByYear = (year: number) => {
+    return year === 1 
+      ? "from-blue-500/20 to-blue-600/10" 
+      : "from-primary/20 to-primary/10";
+  };
+
   return (
     <Layout>
       <div className="container mx-auto px-4 py-12 space-y-8">
@@ -54,10 +86,10 @@ export default function ProjectsPdfPage() {
           transition={{ duration: 0.5 }}
         >
           <h1 className="text-4xl font-bold text-primary">
-            Mes Projets BTS
+            Documentation BTS
           </h1>
           <p className="text-lg text-muted-foreground">
-            Consultez les documents de mes projets réalisés pendant mes deux années de BTS.
+            Consultez mes documentations techniques réalisées pendant mes deux années de BTS SIO option SISR
           </p>
         </motion.div>
 
@@ -70,7 +102,7 @@ export default function ProjectsPdfPage() {
           <div className="relative w-full md:w-auto flex-grow max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Rechercher un projet..."
+              placeholder="Rechercher une documentation..."
               className="pl-9 pr-4"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -116,8 +148,8 @@ export default function ProjectsPdfPage() {
           <div className="text-center py-12">
             <p className="text-lg text-muted-foreground">
               {searchTerm 
-                ? "Aucun projet ne correspond à votre recherche." 
-                : "Aucun projet disponible."}
+                ? "Aucune documentation ne correspond à votre recherche." 
+                : "Aucune documentation disponible."}
             </p>
             {searchTerm && (
               <Button 
@@ -138,20 +170,22 @@ export default function ProjectsPdfPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
               >
-                <Card className="h-full hover:shadow-md transition-shadow">
+                <Card className="h-full overflow-hidden hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 border-t-4 border-primary">
                   <CardContent className="p-6 flex flex-col h-full">
                     <div className="flex items-start gap-4">
-                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-                        {getIconComponent(project.icon || 'file')}
+                      <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${getGradientByYear(project.year)} flex items-center justify-center text-primary`}>
+                        {getIconComponent(project.icon || 'fileText')}
                       </div>
                       <div className="flex-1">
-                        <h3 className="text-lg font-semibold mb-1">{project.title}</h3>
-                        <p className="text-sm text-muted-foreground mb-2">
-                          Année {project.year}
-                        </p>
+                        <h3 className="text-lg font-semibold mb-1 line-clamp-2">{project.title}</h3>
+                        <div className="flex items-center mb-2">
+                          <span className={`text-sm px-2 py-0.5 rounded-full ${project.year === 1 ? 'bg-blue-100 text-blue-700' : 'bg-primary/10 text-primary/90'}`}>
+                            BTS {project.year}
+                          </span>
+                        </div>
                       </div>
                     </div>
-                    <div className="mt-4 flex gap-2 pt-4 border-t">
+                    <div className="mt-auto pt-4 border-t flex gap-2">
                       <Button 
                         variant="outline" 
                         size="sm"
@@ -159,7 +193,7 @@ export default function ProjectsPdfPage() {
                         onClick={() => window.open(project.path, '_blank')}
                       >
                         <Eye className="h-4 w-4 mr-2" />
-                        Voir
+                        Consulter
                       </Button>
                       <Button 
                         size="sm"
