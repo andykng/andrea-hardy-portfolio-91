@@ -39,7 +39,7 @@ const TechLogo = ({ tech }: TechLogoProps) => {
   return (
     <HoverCard>
       <HoverCardTrigger asChild>
-        <div className="flex flex-col items-center p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105 h-full">
+        <div className="flex flex-col items-center p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105 h-full cursor-pointer">
           <div className="relative h-20 w-20 flex items-center justify-center">
             {!imageLoaded && (
               <div className="absolute inset-0 animate-pulse bg-gray-200 rounded-md"></div>
