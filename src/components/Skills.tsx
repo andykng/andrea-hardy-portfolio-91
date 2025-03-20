@@ -1,5 +1,5 @@
 
-import { NetworkIcon, NetworkPort, Server, Shield, TerminalSquare, User, Database, Laptop, Cable, Cloud, Router, GanttChart } from "lucide-react";
+import { NetworkIcon, Server, Shield, TerminalSquare, User, Database, Laptop, Cable, Cloud, Router, GanttChart } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -26,7 +26,7 @@ const systemNetworkSkills = [
   },
   {
     name: "DHCP",
-    icon: NetworkPort,
+    icon: Router,
     description: "Distribution d'adresses IP",
   },
   {
