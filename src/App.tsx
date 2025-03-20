@@ -9,6 +9,7 @@ import HomePage from "./pages/Index";
 import SkillsPage from "./pages/Skills";
 import ExperiencesPage from "./pages/Experience";
 import ProjectsPage from "./pages/Projects";
+import ProjectsPdfPage from "./pages/ProjectsPdf";
 import EducationPage from "./pages/Education";
 import ContactPage from "./pages/Contact";
 import AboutPage from "./pages/About";
@@ -21,6 +22,7 @@ import DashboardPage from "./pages/admin/Dashboard";
 import SkillsAdmin from "./pages/admin/skills/SkillsAdmin";
 import ExperiencesAdmin from "./pages/admin/experiences/ExperiencesAdmin";
 import ProjectsAdmin from "./pages/admin/projects/ProjectsAdmin";
+import ProjectsPdfAdmin from "./pages/admin/projects/ProjectsPdfAdmin";
 import EducationAdmin from "./pages/admin/education/EducationAdmin";
 import AboutAdmin from "./pages/admin/about/AboutAdmin";
 import BlogAdmin from "./pages/admin/blog/BlogAdmin";
@@ -62,6 +64,7 @@ function App() {
             <Route path="/skills" element={<SkillsPage />} />
             <Route path="/experiences" element={<ExperiencesPage />} />
             <Route path="/projects" element={<ProjectsPage />} />
+            <Route path="/projects-pdf" element={<ProjectsPdfPage />} />
             <Route path="/education" element={<EducationPage />} />
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/about" element={<AboutPage />} />
@@ -73,6 +76,7 @@ function App() {
             <Route path="/competences" element={<Navigate to="/skills" replace />} />
             <Route path="/experience" element={<Navigate to="/experiences" replace />} />
             <Route path="/projets" element={<Navigate to="/projects" replace />} />
+            <Route path="/projets-pdf" element={<Navigate to="/projects-pdf" replace />} />
             <Route path="/formation" element={<Navigate to="/education" replace />} />
             <Route path="/a-propos" element={<Navigate to="/about" replace />} />
             <Route path="/veille-techno" element={<Navigate to="/tech-watch" replace />} />
@@ -82,6 +86,7 @@ function App() {
             <Route path="/admin/skills" element={<RequireAuth><SkillsAdmin /></RequireAuth>} />
             <Route path="/admin/experiences" element={<RequireAuth><ExperiencesAdmin /></RequireAuth>} />
             <Route path="/admin/projects" element={<RequireAuth><ProjectsAdmin /></RequireAuth>} />
+            <Route path="/admin/projects-pdf" element={<RequireAuth><ProjectsPdfAdmin /></RequireAuth>} />
             <Route path="/admin/education" element={<RequireAuth><EducationAdmin /></RequireAuth>} />
             <Route path="/admin/about" element={<RequireAuth><AboutAdmin /></RequireAuth>} />
             <Route path="/admin/blog" element={<RequireAuth><BlogAdmin /></RequireAuth>} />

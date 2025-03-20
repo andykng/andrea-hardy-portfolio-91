@@ -9,6 +9,7 @@ import {
   BookText,
   Rss,
   FileText,
+  Files,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -66,6 +67,14 @@ export function AdminSidebar() {
           >
             <FolderKanban className="mr-2 h-4 w-4" />
             Projets
+          </Button>
+          <Button
+            variant={pathname === "/admin/projects-pdf" ? "secondary" : "ghost"}
+            className="w-full justify-start"
+            onClick={() => navigate("/admin/projects-pdf")}
+          >
+            <Files className="mr-2 h-4 w-4" />
+            Projets PDF
           </Button>
           <Button
             variant={pathname === "/admin/education" ? "secondary" : "ghost"}
