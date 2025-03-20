@@ -1,4 +1,3 @@
-
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,7 +6,6 @@ import { useState } from "react";
 import { Linkedin, Mail, Send } from "lucide-react";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 
 interface ContactFormData {
   name: string;
@@ -33,11 +31,8 @@ const Contact = () => {
         message: (formElement.querySelector('[name="message"]') as HTMLTextAreaElement).value,
       };
 
-      const { error } = await supabase.functions.invoke('send-contact-email', {
-        body: formData,
-      });
-
-      if (error) throw error;
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
       toast({
         title: "Message envoyé !",

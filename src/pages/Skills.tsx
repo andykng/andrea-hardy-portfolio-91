@@ -4,17 +4,16 @@ import { Code, Server, Shield, Cloud } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Layout } from "@/components/Layout";
 import { useEffect, useRef } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { animateSkillBars, staggeredPageLoad, revealTextOnScroll } from "@/lib/animations";
+import { TechGrid } from "@/components/TechGrid";
 
 // Ensure GSAP plugins are registered
 gsap.registerPlugin(ScrollTrigger);
 
 export default function SkillsPage() {
-  const queryClient = useQueryClient();
   const pageTitleRef = useRef(null);
   const pageDescriptionRef = useRef(null);
   const cardsRefs = useRef<Array<HTMLDivElement | null>>([]);
@@ -22,60 +21,26 @@ export default function SkillsPage() {
   const { data: skills } = useQuery({
     queryKey: ['skills'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('skills')
-        .select('*')
-        .order('category')
-        .order('name');
-      
-      if (error) throw error;
-      return data;
+      // Mock data since we're not using a real database
+      return [
+        { id: '1', name: 'HTML/CSS', level: 90, category: 'frontend' },
+        { id: '2', name: 'JavaScript', level: 85, category: 'frontend' },
+        { id: '3', name: 'React', level: 80, category: 'frontend' },
+        { id: '4', name: 'Tailwind CSS', level: 85, category: 'frontend' },
+        { id: '5', name: 'Node.js', level: 75, category: 'backend' },
+        { id: '6', name: 'Express', level: 80, category: 'backend' },
+        { id: '7', name: 'MongoDB', level: 70, category: 'backend' },
+        { id: '8', name: 'SQL', level: 75, category: 'backend' },
+        { id: '9', name: 'Docker', level: 65, category: 'devops' },
+        { id: '10', name: 'CI/CD', level: 60, category: 'devops' },
+        { id: '11', name: 'Git', level: 85, category: 'devops' },
+        { id: '12', name: 'Linux', level: 80, category: 'devops' },
+        { id: '13', name: 'Cryptographie', level: 70, category: 'security' },
+        { id: '14', name: 'Firewall', level: 75, category: 'security' },
+        { id: '15', name: 'Pentesting', level: 65, category: 'security' }
+      ];
     }
   });
-
-  // Configuration de la synchronisation en temps réel
-  useEffect(() => {
-    const channel = supabase
-      .channel('public-skills-changes')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'skills' },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ['skills'] });
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [queryClient]);
-
-  // Suivi des vues de page
-  useEffect(() => {
-    const trackPageView = async () => {
-      const { data: currentPage } = await supabase
-        .from('pages')
-        .select('views')
-        .eq('slug', 'competences')
-        .single();
-
-      const currentViews = currentPage?.views || 0;
-
-      await supabase
-        .from('pages')
-        .upsert({ 
-          slug: 'competences',
-          title: 'Compétences',
-          content: 'Page des compétences',
-          views: currentViews + 1 
-        }, {
-          onConflict: 'slug'
-        });
-    };
-
-    trackPageView();
-  }, []);
 
   // GSAP Animations
   useEffect(() => {
@@ -137,7 +102,9 @@ export default function SkillsPage() {
 
   // Reset the refs array when skills change
   useEffect(() => {
-    cardsRefs.current = cardsRefs.current.slice(0, Object.keys(skillsByCategory || {}).length);
+    if (skillsByCategory) {
+      cardsRefs.current = cardsRefs.current.slice(0, Object.keys(skillsByCategory || {}).length);
+    }
   }, [skillsByCategory]);
 
   return (
@@ -157,8 +124,8 @@ export default function SkillsPage() {
           Découvrez les compétences techniques que j'ai acquises au cours de ma formation et de mes expériences professionnelles.
         </p>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {Object.entries(skillsByCategory || {}).map(([category, skills], index) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
+          {skillsByCategory && Object.entries(skillsByCategory).map(([category, skills], index) => (
             <div
               key={category}
               ref={el => cardsRefs.current[index] = el}
@@ -194,6 +161,19 @@ export default function SkillsPage() {
             </div>
           ))}
         </div>
+
+        {/* Intégration de la grille de technologies */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5, duration: 0.8 }}
+          className="mt-16"
+        >
+          <h2 className="text-2xl font-bold text-center mb-8 text-primary">
+            Outils et technologies maîtrisés
+          </h2>
+          <TechGrid />
+        </motion.div>
       </div>
     </Layout>
   );

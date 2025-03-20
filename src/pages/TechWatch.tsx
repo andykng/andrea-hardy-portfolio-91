@@ -2,7 +2,6 @@
 import { Layout } from "@/components/Layout";
 import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -17,13 +16,33 @@ export default function TechWatchPage() {
   const { data: articles, isLoading } = useQuery({
     queryKey: ['tech-watch'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('tech_watch')
-        .select('*')
-        .order('publication_date', { ascending: false });
-      
-      if (error) throw error;
-      return data;
+      // Mock data since we're not using a real database
+      return [
+        {
+          id: '1',
+          title: 'Les dernières tendances en cybersécurité',
+          content: '<p>Une analyse des tendances actuelles en matière de cybersécurité, notamment la montée des attaques de ransomware et les mesures de protection recommandées.</p>',
+          category: 'Cybersécurité',
+          publication_date: '2023-06-15',
+          source_url: 'https://example.com/cyber-trends'
+        },
+        {
+          id: '2',
+          title: 'L\'impact de l\'IA sur les métiers de l\'informatique',
+          content: '<p>Comment l\'intelligence artificielle transforme les métiers de l\'informatique et quelles compétences développer pour rester pertinent dans ce contexte.</p>',
+          category: 'Intelligence Artificielle',
+          publication_date: '2023-05-20',
+          source_url: 'https://example.com/ai-it-jobs'
+        },
+        {
+          id: '3',
+          title: 'Virtualisation et conteneurisation : les bonnes pratiques',
+          content: '<p>Un guide des meilleures pratiques pour la mise en œuvre de solutions de virtualisation et de conteneurisation dans un environnement d\'entreprise.</p>',
+          category: 'Virtualisation',
+          publication_date: '2023-04-10',
+          source_url: 'https://example.com/virtualization-best-practices'
+        }
+      ];
     }
   });
 

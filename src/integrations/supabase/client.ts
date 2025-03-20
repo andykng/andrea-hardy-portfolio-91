@@ -7,23 +7,41 @@ export const supabase = {
     signInWithPassword: () => Promise.resolve({ data: {}, error: null }),
     signOut: () => Promise.resolve({ error: null })
   },
-  from: () => ({
-    select: () => ({
-      order: () => Promise.resolve({ data: [], error: null }),
-      eq: () => Promise.resolve({ data: [], error: null })
+  from: (table: string) => ({
+    select: (columns: string = '*') => ({
+      order: (column: string, options: { ascending: boolean } = { ascending: false }) => 
+        Promise.resolve({ data: [], error: null }),
+      eq: (column: string, value: any) => 
+        Promise.resolve({ data: [], error: null }),
+      limit: (num: number) =>
+        Promise.resolve({ data: [], error: null }),
+      single: () =>
+        Promise.resolve({ data: null, error: null })
     }),
-    insert: () => Promise.resolve({ error: null }),
-    update: () => ({
-      eq: () => Promise.resolve({ error: null })
+    insert: (data: any) => Promise.resolve({ error: null }),
+    update: (data: any) => ({
+      eq: (column: string, value: any) => Promise.resolve({ error: null })
     }),
     delete: () => ({
-      eq: () => Promise.resolve({ error: null })
-    })
+      eq: (column: string, value: any) => Promise.resolve({ error: null })
+    }),
+    upsert: (data: any, options: any = {}) => Promise.resolve({ error: null })
   }),
   storage: {
-    from: () => ({
-      upload: () => Promise.resolve({ error: null }),
-      getPublicUrl: () => ({ data: { publicUrl: '' } })
+    from: (bucket: string) => ({
+      upload: (path: string, file: any) => Promise.resolve({ error: null }),
+      getPublicUrl: (path: string) => ({ data: { publicUrl: '' } })
     })
+  },
+  // Mock the channel functionality
+  channel: (name: string) => ({
+    on: () => ({
+      subscribe: () => ({})
+    })
+  }),
+  removeChannel: () => Promise.resolve(),
+  // Mock functions property
+  functions: {
+    invoke: (name: string, options: any = {}) => Promise.resolve({ data: null, error: null })
   }
 };

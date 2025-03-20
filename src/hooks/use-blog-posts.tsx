@@ -38,37 +38,60 @@ export const useBlogPosts = (options?: {
     queryFn: async () => {
       console.log('Fetching blog posts with options:', options);
       
-      let query = supabase
-        .from('blog_posts')
-        .select('*');
-      
-      // Filtre selon que l'on est en mode admin ou visiteur
-      if (!adminMode) {
-        query = query.eq('status', 'published');
-      }
-      
-      // Filtrage par catégorie si spécifiée
-      if (category) {
-        query = query.eq('category', category);
-      }
-      
-      // Tri par date de publication décroissante
-      query = query.order('published_at', { ascending: false });
-      
-      // Limite le nombre de résultats si spécifié
-      if (limit) {
-        query = query.limit(limit);
-      }
+      // Mock data since we're not using a real database
+      const mockPosts: BlogPost[] = [
+        {
+          id: '1',
+          title: 'Introduction à la cybersécurité',
+          excerpt: 'Les bases de la cybersécurité pour les débutants',
+          content: '<p>Cet article présente les concepts fondamentaux de la cybersécurité...</p>',
+          author: 'Andrea Hardy',
+          category: 'Cybersécurité',
+          image_url: 'https://res.cloudinary.com/drbfimvy9/image/upload/v1742487800/cybersecurity.jpg',
+          published_at: '2023-05-15',
+          created_at: '2023-05-10',
+          updated_at: '2023-05-15',
+          read_time: 5,
+          status: 'published',
+          views: 120,
+          slug: 'introduction-a-la-cybersecurite'
+        },
+        {
+          id: '2',
+          title: 'Configurer un serveur Linux sécurisé',
+          excerpt: 'Guide étape par étape pour sécuriser votre serveur Linux',
+          content: '<p>Dans ce tutoriel, nous allons voir comment configurer un serveur Linux sécurisé...</p>',
+          author: 'Andrea Hardy',
+          category: 'Linux',
+          image_url: 'https://res.cloudinary.com/drbfimvy9/image/upload/v1742487800/linux-server.jpg',
+          published_at: '2023-06-20',
+          created_at: '2023-06-15',
+          updated_at: '2023-06-20',
+          read_time: 10,
+          status: 'published',
+          views: 85,
+          slug: 'configurer-serveur-linux-securise'
+        }
+      ];
 
-      const { data, error } = await query;
-      
-      if (error) {
-        console.error('Error fetching blog posts:', error);
-        throw error;
+      // Filter by category if specified
+      let filteredPosts = [...mockPosts];
+      if (category) {
+        filteredPosts = filteredPosts.filter(post => post.category === category);
       }
       
-      console.log('Blog posts fetched:', data?.length);
-      return data as BlogPost[];
+      // Filter by status if not admin
+      if (!adminMode) {
+        filteredPosts = filteredPosts.filter(post => post.status === 'published');
+      }
+      
+      // Limit results if specified
+      if (limit && limit > 0) {
+        filteredPosts = filteredPosts.slice(0, limit);
+      }
+      
+      console.log('Blog posts fetched:', filteredPosts.length);
+      return filteredPosts;
     }
   });
 };

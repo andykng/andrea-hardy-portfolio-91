@@ -2,7 +2,6 @@
 import { Layout } from "@/components/Layout";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useRef } from "react";
 
@@ -10,13 +9,33 @@ export default function AboutPage() {
   const { data: sections, isLoading } = useQuery({
     queryKey: ['about'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('about')
-        .select('*')
-        .order('order_index', { ascending: true });
-      
-      if (error) throw error;
-      return data;
+      // Mock data since we're not using a real database
+      return [
+        {
+          id: '1',
+          title: 'Qui suis-je',
+          content: '<p>Je suis Andrea Hardy, une étudiante passionnée par l\'informatique et plus particulièrement par la cybersécurité. Actuellement en BTS SIO option SISR, je développe mes compétences en réseaux, systèmes et sécurité.</p>',
+          image_url: 'https://res.cloudinary.com/drbfimvy9/image/upload/v1742487800/profile_placeholder.jpg',
+          order_index: 1,
+          section: 'profile'
+        },
+        {
+          id: '2',
+          title: 'Mon parcours',
+          content: '<p>Après un baccalauréat général avec spécialités mathématiques et NSI, j\'ai choisi de poursuivre mes études dans l\'informatique. Le BTS SIO option SISR m\'a permis de me spécialiser dans les domaines qui me passionnent.</p>',
+          image_url: null,
+          order_index: 2,
+          section: 'education'
+        },
+        {
+          id: '3',
+          title: 'Mes centres d\'intérêt',
+          content: '<p>En dehors de mes études, je m\'intéresse à la programmation, aux CTF de cybersécurité et à la virtualisation. J\'aime également participer à des projets open source et me tenir informée des dernières avancées technologiques.</p>',
+          image_url: null,
+          order_index: 3,
+          section: 'interests'
+        }
+      ];
     }
   });
 
