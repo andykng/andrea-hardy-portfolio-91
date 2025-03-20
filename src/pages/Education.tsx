@@ -1,7 +1,7 @@
 
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Award, School, Calendar, Clock, Building, ExternalLink, User, CheckCircle, FileText, Badge, Certificate } from "lucide-react";
+import { Award, School, Calendar, Clock, Building, ExternalLink, User, CheckCircle, FileText, Badge } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { useEducation, useCertifications } from "@/hooks/use-education";
 import { Badge as BadgeComponent } from "@/components/ui/badge";
