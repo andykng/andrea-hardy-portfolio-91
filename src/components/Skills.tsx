@@ -1,7 +1,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { NetworkIcon, Server, Shield, TerminalSquare, User, Database, Laptop, Cloud, Router, GanttChart } from "lucide-react";
+import { Server, Shield, TerminalSquare, User, Router, GanttChart } from "lucide-react";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { fadeInOnScroll } from "@/lib/animations";
 import { useEffect } from "react";
@@ -51,7 +51,7 @@ const systemNetworkSkills = [
   },
   {
     name: "VLAN",
-    icon: NetworkIcon,
+    icon: Router,
     description: "Configuration des réseaux virtuels",
     logoUrl: null
   },
@@ -147,7 +147,7 @@ const securitySkills = [
 const cloudSkills = [
   {
     name: "Docker",
-    icon: Cloud,
+    icon: Server,
     description: "Conteneurisation",
     logoUrl: null
   },
@@ -159,13 +159,13 @@ const cloudSkills = [
   },
   {
     name: "AWS",
-    icon: Cloud,
+    icon: Server,
     description: "Services cloud Amazon",
     logoUrl: null
   },
   {
     name: "Azure",
-    icon: Cloud,
+    icon: Server,
     description: "Services cloud Microsoft",
     logoUrl: null
   },
