@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { ProjectPDF, ProjectsConfig } from '@/types/project-pdf';
@@ -5,8 +6,8 @@ import { useRealtimeSubscription } from './use-realtime-subscription';
 import { useToast } from '@/components/ui/use-toast';
 import { Json } from '@/integrations/supabase/types';
 
-// Listes manuelles de fichiers si la récupération automatique échoue
-const manualYear1Files = [
+// Listes des fichiers dans les répertoires
+const year1Files = [
   "atelier_n_6_-_apache2.pdf",
   "bind.pdf",
   "configuration_de_ssh.pdf",
@@ -26,7 +27,7 @@ const manualYear1Files = [
   "Étude du Contexte _ Calculs d'Adresses IP et Sous-Réseaux.pdf",
 ];
 
-const manualYear2Files = [
+const year2Files = [
   "Récupération d'une configuration.pdf",
   "active_directory_windows_server (1).pdf",
   "authentification_gpg (1).pdf",
@@ -45,7 +46,7 @@ const manualYear2Files = [
   "zabbix.pdf",
 ];
 
-// Icônes par défaut basées sur les catégories ou les mots clés dans le titre
+// Fonction pour obtenir l'icône par défaut
 const getDefaultIcon = (title: string) => {
   const lowerTitle = title.toLowerCase();
   
@@ -128,12 +129,6 @@ export const useProjectPDFs = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const { toast } = useToast();
-  
-  // Activer la subscription en temps réel pour les mises à jour
-  useRealtimeSubscription({
-    table: 'projects_config',
-    queryKeys: ['projects', 'public'],
-  });
 
   // Fonction pour convertir un fichier en objet ProjectPDF
   const fileToProject = (filename: string, year: 1 | 2): ProjectPDF => {
@@ -154,155 +149,31 @@ export const useProjectPDFs = () => {
     };
   };
 
-  // Fonction pour charger les projets depuis la configuration
-  const loadProjects = async () => {
+  // Fonction pour charger les projets directement depuis les listes de fichiers
+  const loadProjects = () => {
     try {
       setLoading(true);
       
-      // Essayer de récupérer la configuration depuis Supabase
-      const { data, error } = await supabase
-        .from('projects_config')
-        .select('*')
-        .eq('id', 1)
-        .single();
-      
-      if (error) {
-        console.error('Erreur lors de la récupération des projets:', error);
-        throw error;
-      }
-      
-      if (data && data.config) {
-        // Vérifier si config.projects existe et est un tableau
-        const configData = data.config as any;
-        if (configData.projects && Array.isArray(configData.projects)) {
-          console.log('Configuration de projets récupérée:', configData.projects.length, 'projets');
-          setProjects(configData.projects);
-        } else {
-          // Si projects n'existe pas ou n'est pas un tableau
-          console.log('Aucune liste de projets valide trouvée, génération automatique...');
-          await generateAndSaveProjectsConfig();
-        }
-      } else {
-        // Si pas de config ou config vide, générer automatiquement
-        console.log('Aucune configuration de projets trouvée, génération automatique...');
-        await generateAndSaveProjectsConfig();
-      }
-    } catch (err) {
-      console.error('Erreur dans loadProjects:', err);
-      setError(err instanceof Error ? err : new Error(String(err)));
-      // En cas d'erreur, utiliser les listes manuelles
-      await generateAndSaveProjectsConfig();
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Fonction pour générer et sauvegarder la configuration des projets
-  const generateAndSaveProjectsConfig = async () => {
-    try {
-      console.log('Génération de la configuration des projets...');
-      
-      // Utiliser les listes manuelles pour garantir le fonctionnement
-      console.log('Utilisation de la liste manuelle - Fichiers année 1:', manualYear1Files.length);
-      console.log('Utilisation de la liste manuelle - Fichiers année 2:', manualYear2Files.length);
-      
-      const year1Projects = manualYear1Files.map(filename => fileToProject(filename, 1));
-      const year2Projects = manualYear2Files.map(filename => fileToProject(filename, 2));
+      // Créer les projets à partir des listes de fichiers
+      const year1Projects = year1Files.map(filename => fileToProject(filename, 1));
+      const year2Projects = year2Files.map(filename => fileToProject(filename, 2));
       
       const allProjects = [...year1Projects, ...year2Projects];
       setProjects(allProjects);
       
-      // Sauvegarder la configuration dans Supabase
-      const success = await saveProjectsConfig(allProjects);
-      if (success) {
-        console.log('Configuration générée et sauvegardée avec succès!');
-        toast({
-          title: 'Succès',
-          description: 'La liste des documentations PDF a été générée avec succès',
-          variant: 'default',
-        });
-      }
+      console.log(`Chargement de ${allProjects.length} projets PDF terminé`);
       
-    } catch (error) {
-      console.error('Erreur lors de la génération de la configuration:', error);
-      setError(error instanceof Error ? error : new Error(String(error)));
-    }
-  };
-
-  // Fonction pour sauvegarder la configuration des projets
-  const saveProjectsConfig = async (projectsList: ProjectPDF[]) => {
-    try {
-      const projectsConfig: ProjectsConfig = { projects: projectsList };
+    } catch (err) {
+      console.error('Erreur lors du chargement des projets:', err);
+      setError(err instanceof Error ? err : new Error(String(err)));
       
-      // Vérifier si la configuration existe déjà
-      const { data, error: checkError } = await supabase
-        .from('projects_config')
-        .select('id')
-        .eq('id', 1)
-        .maybeSingle();
-      
-      if (checkError) {
-        console.error('Erreur lors de la vérification de la configuration:', checkError);
-      }
-      
-      let result;
-      
-      if (data) {
-        // Mettre à jour la configuration existante
-        result = await supabase
-          .from('projects_config')
-          .update({ 
-            config: projectsConfig as unknown as Json,
-            updated_at: new Date().toISOString() 
-          })
-          .eq('id', 1);
-      } else {
-        // Créer une nouvelle configuration
-        result = await supabase
-          .from('projects_config')
-          .insert({ 
-            id: 1, 
-            config: projectsConfig as unknown as Json 
-          });
-      }
-      
-      if (result.error) {
-        console.error('Erreur lors de la sauvegarde de la configuration:', result.error);
-        toast({
-          title: 'Erreur',
-          description: 'Impossible de sauvegarder la configuration des projets',
-          variant: 'destructive',
-        });
-        return false;
-      } else {
-        console.log('Configuration des projets sauvegardée avec succès');
-        return true;
-      }
-    } catch (error) {
-      console.error('Erreur dans saveProjectsConfig:', error);
       toast({
         title: 'Erreur',
-        description: 'Une erreur est survenue lors de la sauvegarde',
+        description: 'Impossible de charger les documentations PDF',
         variant: 'destructive',
       });
-      return false;
-    }
-  };
-
-  // Fonction pour mettre à jour un projet
-  const updateProject = async (updatedProject: ProjectPDF) => {
-    try {
-      const updatedProjects = projects.map(project => 
-        project.id === updatedProject.id ? updatedProject : project
-      );
-      
-      setProjects(updatedProjects);
-      await saveProjectsConfig(updatedProjects);
-      
-      return true;
-    } catch (error) {
-      console.error('Erreur lors de la mise à jour du projet:', error);
-      return false;
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -315,9 +186,6 @@ export const useProjectPDFs = () => {
     projects,
     loading,
     error,
-    loadProjects,
-    saveProjectsConfig,
-    updateProject,
-    generateAndSaveProjectsConfig
+    loadProjects
   };
 };

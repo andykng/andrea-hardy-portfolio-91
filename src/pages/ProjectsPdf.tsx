@@ -36,7 +36,7 @@ const DynamicIcon = ({ iconName, className = "h-5 w-5" }) => {
     'activity': Activity,
     'save': Save,
     'download': Download,
-    'windows': Laptop, // Changed from Windows to Laptop
+    'windows': Laptop,
     'ban': AlertCircle,
   };
 
@@ -45,20 +45,12 @@ const DynamicIcon = ({ iconName, className = "h-5 w-5" }) => {
 };
 
 export default function ProjectsPdf() {
-  const { projects, loading, loadProjects, generateAndSaveProjectsConfig } = useProjectPDFs();
+  const { projects, loading, loadProjects } = useProjectPDFs();
   const [year1Projects, setYear1Projects] = useState([]);
   const [year2Projects, setYear2Projects] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [categories, setCategories] = useState([]);
-  
-  useEffect(() => {
-    // Si les projets sont vides après le chargement, les générer automatiquement
-    if (!loading && projects.length === 0) {
-      console.log("Aucun projet trouvé, génération automatique...");
-      generateAndSaveProjectsConfig();
-    }
-  }, [loading, projects.length, generateAndSaveProjectsConfig]);
   
   useEffect(() => {
     if (projects) {
@@ -94,7 +86,7 @@ export default function ProjectsPdf() {
 
   // Fonction pour rafraîchir manuellement les projets
   const handleRefresh = () => {
-    generateAndSaveProjectsConfig();
+    loadProjects();
   };
 
   return (
@@ -111,15 +103,12 @@ export default function ProjectsPdf() {
             Explorez la documentation technique développée au cours de mon BTS SIO option SISR
           </p>
           
-          {/* Bouton de rafraîchissement visible uniquement quand il n'y a pas de projets */}
-          {!loading && projects.length === 0 && (
-            <div className="flex justify-center mt-4">
-              <Button onClick={handleRefresh} className="flex items-center gap-2">
-                <File className="h-4 w-4" />
-                Initialiser les documents
-              </Button>
-            </div>
-          )}
+          <div className="flex justify-center mt-4">
+            <Button onClick={handleRefresh} className="flex items-center gap-2">
+              <File className="h-4 w-4" />
+              Actualiser les documents
+            </Button>
+          </div>
         </motion.div>
 
         {/* Filtres */}
