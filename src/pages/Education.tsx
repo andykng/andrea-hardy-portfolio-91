@@ -39,7 +39,7 @@ export default function EducationPage() {
 
         <Tabs defaultValue="education" className="max-w-6xl mx-auto">
           <div className="flex justify-center mb-8">
-            <TabsList className="grid grid-cols-2 w-full max-w-md">
+            <TabsList className="grid grid-cols-3 w-full max-w-md">
               <TabsTrigger value="education" className="flex items-center gap-2">
                 <School className="h-4 w-4" />
                 Parcours
@@ -47,6 +47,10 @@ export default function EducationPage() {
               <TabsTrigger value="certifications" className="flex items-center gap-2">
                 <Award className="h-4 w-4" />
                 Certifications
+              </TabsTrigger>
+              <TabsTrigger value="skills" className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4" />
+                Compétences
               </TabsTrigger>
             </TabsList>
           </div>
@@ -203,6 +207,69 @@ export default function EducationPage() {
                 ))}
               </div>
             )}
+          </TabsContent>
+
+          <TabsContent value="skills">
+            <Card>
+              <CardHeader>
+                <CardTitle>Mes compétences professionnelles</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-medium">Infrastructure & Réseau</h3>
+                    <ul className="space-y-2">
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <span>Administration de serveurs Windows/Linux</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <span>Mise en place et gestion de services réseau</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <span>Configuration de pare-feu et sécurité réseau</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <span>Déploiement et gestion d'Active Directory</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <span>Solutions de sauvegarde et de restauration</span>
+                      </li>
+                    </ul>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-medium">Développement & Web</h3>
+                    <ul className="space-y-2">
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <span>Développement d'applications web</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <span>Conception et optimisation de bases de données</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <span>Intégration d'APIs et services tiers</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <span>Développement frontend moderne</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <span>Tests et déploiement continu</span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </div>

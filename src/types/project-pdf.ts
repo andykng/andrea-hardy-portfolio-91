@@ -6,6 +6,8 @@ export interface ProjectPDF {
   path: string;
   icon?: string;
   category?: string;
+  displayName?: string;  // Champ pour permettre de renommer l'affichage
+  description?: string;  // Description optionnelle
 }
 
 export interface ProjectsConfig {

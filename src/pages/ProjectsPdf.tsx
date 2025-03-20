@@ -1,216 +1,250 @@
 
-import { useState } from "react";
-import { motion } from "framer-motion";
-import { Card, CardContent } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
+import { useState, useEffect } from "react";
 import { Layout } from "@/components/Layout";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { motion } from "framer-motion";
 import { useProjectPDFs } from "@/hooks/use-project-pdfs";
-import { Input } from "@/components/ui/input";
 import { 
-  Search, 
-  File, 
-  FileText, 
-  BookOpen, 
-  Book, 
-  Archive, 
-  FolderOpen, 
-  Folder, 
-  Download, 
-  Eye, 
-  FileCode,
-  Server,
-  Shield,
-  Wifi,
-  Database,
-  Lock,
-  Network
+  File, Book, FileText, ExternalLink, 
+  Server, Shield, Database, Network, Globe, Settings, Terminal,
+  Code, FolderOpen, HardDrive, Share, ShieldAlert, Key, Activity,
+  Save, Download, Windows, AlertCircle
 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-export default function ProjectsPdfPage() {
-  const { projects, loading, error } = useProjectPDFs();
-  const [searchTerm, setSearchTerm] = useState("");
-  const [activeTab, setActiveTab] = useState<string>("all");
-
-  // Fonction pour obtenir l'icône correspondant au nom
-  const getIconComponent = (iconName: string) => {
-    const iconMap: Record<string, JSX.Element> = {
-      file: <File className="h-5 w-5" />,
-      fileText: <FileText className="h-5 w-5" />,
-      fileCode: <FileCode className="h-5 w-5" />,
-      bookOpen: <BookOpen className="h-5 w-5" />,
-      book: <Book className="h-5 w-5" />,
-      archive: <Archive className="h-5 w-5" />,
-      folder: <Folder className="h-5 w-5" />,
-      folderOpen: <FolderOpen className="h-5 w-5" />,
-      server: <Server className="h-5 w-5" />,
-      shield: <Shield className="h-5 w-5" />,
-      wifi: <Wifi className="h-5 w-5" />,
-      database: <Database className="h-5 w-5" />,
-      lock: <Lock className="h-5 w-5" />,
-      network: <Network className="h-5 w-5" />,
-    };
-    
-    return iconMap[iconName] || <FileText className="h-5 w-5" />;
+// Composant pour l'icône dynamique
+const DynamicIcon = ({ iconName, className = "h-5 w-5" }) => {
+  const IconMap = {
+    'file-text': FileText,
+    'server': Server,
+    'shield': Shield,
+    'database': Database,
+    'network': Network,
+    'globe': Globe,
+    'settings': Settings,
+    'terminal': Terminal,
+    'code': Code,
+    'folder-open': FolderOpen,
+    'hard-drive': HardDrive,
+    'share': Share,
+    'shield-alert': ShieldAlert,
+    'key': Key,
+    'activity': Activity,
+    'save': Save,
+    'download': Download,
+    'windows': Windows,
+    'ban': AlertCircle,
   };
 
-  // Filtrer les projets selon le terme de recherche
-  const filteredProjects = projects.filter(project => 
-    project.title.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const IconComponent = IconMap[iconName] || FileText;
+  return <IconComponent className={className} />;
+};
 
-  // Filtrer selon l'année
-  const year1Projects = filteredProjects.filter(p => p.year === 1);
-  const year2Projects = filteredProjects.filter(p => p.year === 2);
+export default function ProjectsPdf() {
+  const { projects, loading } = useProjectPDFs();
+  const [year1Projects, setYear1Projects] = useState([]);
+  const [year2Projects, setYear2Projects] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [categories, setCategories] = useState([]);
   
-  // Déterminer les projets à afficher selon l'onglet actif
-  const displayedProjects = 
-    activeTab === "all" ? filteredProjects : 
-    activeTab === "year1" ? year1Projects : 
-    year2Projects;
-
-  // Obtenir un dégradé de couleur en fonction de l'année
-  const getGradientByYear = (year: number) => {
-    return year === 1 
-      ? "from-blue-500/20 to-blue-600/10" 
-      : "from-primary/20 to-primary/10";
+  useEffect(() => {
+    if (projects) {
+      const year1 = projects.filter(project => project.year === 1);
+      const year2 = projects.filter(project => project.year === 2);
+      
+      // Extraction des catégories uniques
+      const uniqueCategories = [...new Set(projects.map(p => p.category))].filter(Boolean);
+      setCategories(uniqueCategories);
+      
+      // Filtrage des projets
+      const filteredYear1 = filterProjects(year1);
+      const filteredYear2 = filterProjects(year2);
+      
+      setYear1Projects(filteredYear1);
+      setYear2Projects(filteredYear2);
+    }
+  }, [projects, searchTerm, selectedCategory]);
+  
+  // Fonction pour filtrer les projets
+  const filterProjects = (projectsList) => {
+    return projectsList.filter(project => {
+      const matchesSearch = (
+        (project.displayName || project.title).toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (project.description || "").toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      
+      const matchesCategory = selectedCategory === "all" || project.category === selectedCategory;
+      
+      return matchesSearch && matchesCategory;
+    });
   };
 
   return (
     <Layout>
-      <div className="container mx-auto px-4 py-12 space-y-8">
-        <motion.div 
-          className="text-center max-w-3xl mx-auto space-y-4"
+      <div className="container mx-auto px-4 py-12">
+        <motion.div
+          className="text-center max-w-3xl mx-auto space-y-4 mb-8"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <h1 className="text-4xl font-bold text-primary">
-            Documentation BTS
-          </h1>
+          <h1 className="text-4xl font-bold text-primary">Documentation BTS</h1>
           <p className="text-lg text-muted-foreground">
-            Consultez mes documentations techniques réalisées pendant mes deux années de BTS SIO option SISR
+            Explorez la documentation technique développée au cours de mon BTS SIO option SISR
           </p>
         </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="flex flex-col md:flex-row gap-4 justify-between items-center"
-        >
-          <div className="relative w-full md:w-auto flex-grow max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        {/* Filtres */}
+        <div className="flex flex-col md:flex-row gap-4 mb-8">
+          <div className="flex-1">
             <Input
-              placeholder="Rechercher une documentation..."
-              className="pl-9 pr-4"
+              placeholder="Rechercher un document..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full"
             />
           </div>
           
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full md:w-auto">
-            <TabsList>
-              <TabsTrigger value="all">Tous</TabsTrigger>
-              <TabsTrigger value="year1">Année 1</TabsTrigger>
-              <TabsTrigger value="year2">Année 2</TabsTrigger>
-            </TabsList>
-          </Tabs>
-        </motion.div>
+          <div className="w-full md:w-64">
+            <Select
+              value={selectedCategory}
+              onValueChange={setSelectedCategory}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Filtrer par catégorie" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Toutes les catégories</SelectItem>
+                {categories.map((category) => (
+                  <SelectItem key={category} value={category}>
+                    {category}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
 
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <Card key={i} className="animate-pulse">
-                <div className="p-6">
-                  <div className="flex items-center gap-4 mb-4">
-                    <div className="w-10 h-10 rounded-full bg-muted"></div>
-                    <div className="flex-1">
-                      <div className="h-5 bg-muted rounded w-3/4"></div>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="h-4 bg-muted rounded"></div>
-                    <div className="h-4 bg-muted rounded w-5/6"></div>
-                  </div>
+          <div className="space-y-6">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-4 p-4 border rounded-md">
+                <Skeleton className="h-10 w-10 rounded-md" />
+                <div className="space-y-2 flex-1">
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-3 w-1/2" />
                 </div>
-              </Card>
+              </div>
             ))}
-          </div>
-        ) : error ? (
-          <div className="text-center py-12">
-            <div className="text-red-500 mb-4">
-              Une erreur est survenue lors du chargement des projets
-            </div>
-            <Button onClick={() => window.location.reload()}>Réessayer</Button>
-          </div>
-        ) : displayedProjects.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-lg text-muted-foreground">
-              {searchTerm 
-                ? "Aucune documentation ne correspond à votre recherche." 
-                : "Aucune documentation disponible."}
-            </p>
-            {searchTerm && (
-              <Button 
-                variant="outline" 
-                className="mt-4"
-                onClick={() => setSearchTerm("")}
-              >
-                Réinitialiser la recherche
-              </Button>
-            )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {displayedProjects.map((project, index) => (
-              <motion.div
-                key={project.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
-              >
-                <Card className="h-full overflow-hidden hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 border-t-4 border-primary">
-                  <CardContent className="p-6 flex flex-col h-full">
-                    <div className="flex items-start gap-4">
-                      <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${getGradientByYear(project.year)} flex items-center justify-center text-primary`}>
-                        {getIconComponent(project.icon || 'fileText')}
+          <Tabs defaultValue="year1" className="max-w-6xl mx-auto">
+            <TabsList className="grid grid-cols-2 w-full max-w-md mx-auto mb-8">
+              <TabsTrigger value="year1" className="flex items-center gap-2">
+                <Book className="h-4 w-4" />
+                Année 1
+              </TabsTrigger>
+              <TabsTrigger value="year2" className="flex items-center gap-2">
+                <Book className="h-4 w-4" />
+                Année 2
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="year1">
+              <div className="grid grid-cols-1 gap-4">
+                {year1Projects.length === 0 ? (
+                  <div className="text-center p-8 border rounded-md">
+                    <p className="text-muted-foreground">Aucun document trouvé pour cette année</p>
+                  </div>
+                ) : (
+                  year1Projects.map((project) => (
+                    <motion.div
+                      key={project.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="bg-card rounded-lg p-4 shadow-sm border hover:shadow-md transition-shadow flex items-center"
+                    >
+                      <div className="bg-primary/10 p-3 rounded-md text-primary mr-4">
+                        <DynamicIcon iconName={project.icon || 'file-text'} className="h-6 w-6" />
                       </div>
                       <div className="flex-1">
-                        <h3 className="text-lg font-semibold mb-1 line-clamp-2">{project.title}</h3>
-                        <div className="flex items-center mb-2">
-                          <span className={`text-sm px-2 py-0.5 rounded-full ${project.year === 1 ? 'bg-blue-100 text-blue-700' : 'bg-primary/10 text-primary/90'}`}>
-                            BTS {project.year}
-                          </span>
-                        </div>
+                        <h3 className="font-medium text-lg">{project.displayName || project.title}</h3>
+                        {project.description && (
+                          <p className="text-muted-foreground text-sm mt-1">{project.description}</p>
+                        )}
+                        {project.category && (
+                          <Badge variant="outline" className="mt-2">
+                            {project.category}
+                          </Badge>
+                        )}
                       </div>
-                    </div>
-                    <div className="mt-auto pt-4 border-t flex gap-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        className="flex-1"
-                        onClick={() => window.open(project.path, '_blank')}
-                      >
-                        <Eye className="h-4 w-4 mr-2" />
-                        Consulter
-                      </Button>
-                      <Button 
-                        size="sm"
-                        className="flex-1"
+                      <Button
+                        variant="ghost"
+                        size="icon"
                         asChild
+                        className="ml-4"
                       >
-                        <a href={project.path} download>
-                          <Download className="h-4 w-4 mr-2" />
-                          Télécharger
+                        <a href={project.path} target="_blank" rel="noopener noreferrer">
+                          <ExternalLink className="h-5 w-5" />
                         </a>
                       </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
+                    </motion.div>
+                  ))
+                )}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="year2">
+              <div className="grid grid-cols-1 gap-4">
+                {year2Projects.length === 0 ? (
+                  <div className="text-center p-8 border rounded-md">
+                    <p className="text-muted-foreground">Aucun document trouvé pour cette année</p>
+                  </div>
+                ) : (
+                  year2Projects.map((project) => (
+                    <motion.div
+                      key={project.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="bg-card rounded-lg p-4 shadow-sm border hover:shadow-md transition-shadow flex items-center"
+                    >
+                      <div className="bg-primary/10 p-3 rounded-md text-primary mr-4">
+                        <DynamicIcon iconName={project.icon || 'file-text'} className="h-6 w-6" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-medium text-lg">{project.displayName || project.title}</h3>
+                        {project.description && (
+                          <p className="text-muted-foreground text-sm mt-1">{project.description}</p>
+                        )}
+                        {project.category && (
+                          <Badge variant="outline" className="mt-2">
+                            {project.category}
+                          </Badge>
+                        )}
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        asChild
+                        className="ml-4"
+                      >
+                        <a href={project.path} target="_blank" rel="noopener noreferrer">
+                          <ExternalLink className="h-5 w-5" />
+                        </a>
+                      </Button>
+                    </motion.div>
+                  ))
+                )}
+              </div>
+            </TabsContent>
+          </Tabs>
         )}
       </div>
     </Layout>
