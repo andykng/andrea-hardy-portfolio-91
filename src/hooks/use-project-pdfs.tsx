@@ -118,7 +118,7 @@ export const saveProjectsConfig = async (projects: ProjectPDF[]) => {
       .from('projects_config')
       .upsert({ 
         id: 1, 
-        config: config as unknown as Json
+        config: config as any
       }, { onConflict: 'id' });
     
     if (error) throw error;
