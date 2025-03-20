@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ProjectPDF, ProjectsConfig } from '@/types/project-pdf';
 import { useRealtimeSubscription } from './use-realtime-subscription';
 import { useToast } from '@/components/ui/use-toast';
+import { Json } from '@/integrations/supabase/types';
 
 // Listes manuelles de fichiers si la récupération automatique échoue
 const manualYear1Files = [
@@ -171,9 +172,17 @@ export const useProjectPDFs = () => {
         throw error;
       }
       
-      if (data && data.config && data.config.projects && data.config.projects.length > 0) {
-        console.log('Configuration de projets récupérée:', data.config.projects.length, 'projets');
-        setProjects(data.config.projects);
+      if (data && data.config) {
+        // Vérifier si config.projects existe et est un tableau
+        const configData = data.config as any;
+        if (configData.projects && Array.isArray(configData.projects)) {
+          console.log('Configuration de projets récupérée:', configData.projects.length, 'projets');
+          setProjects(configData.projects);
+        } else {
+          // Si projects n'existe pas ou n'est pas un tableau
+          console.log('Aucune liste de projets valide trouvée, génération automatique...');
+          await generateAndSaveProjectsConfig();
+        }
       } else {
         // Si pas de config ou config vide, générer automatiquement
         console.log('Aucune configuration de projets trouvée, génération automatique...');
@@ -235,13 +244,19 @@ export const useProjectPDFs = () => {
         // Mettre à jour la configuration existante
         result = await supabase
           .from('projects_config')
-          .update({ config: projectsConfig, updated_at: new Date().toISOString() })
+          .update({ 
+            config: projectsConfig as unknown as Json,
+            updated_at: new Date().toISOString() 
+          })
           .eq('id', 1);
       } else {
         // Créer une nouvelle configuration
         result = await supabase
           .from('projects_config')
-          .insert({ id: 1, config: projectsConfig });
+          .insert({ 
+            id: 1, 
+            config: projectsConfig as unknown as Json 
+          });
       }
       
       if (result.error) {

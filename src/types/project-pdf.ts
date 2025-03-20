@@ -12,6 +12,7 @@ export interface ProjectPDF {
 
 export interface ProjectsConfig {
   projects: ProjectPDF[];
+  [key: string]: any; // Add index signature to make it compatible with Json type
 }
 
 // This type matches the structure in the Supabase table

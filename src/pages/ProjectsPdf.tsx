@@ -10,7 +10,7 @@ import {
   File, Book, FileText, ExternalLink, 
   Server, Shield, Database, Network, Globe, Settings, Terminal,
   Code, FolderOpen, HardDrive, Share, ShieldAlert, Key, Activity,
-  Save, Download, Windows, AlertCircle
+  Save, Download, Laptop, AlertCircle
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -36,7 +36,7 @@ const DynamicIcon = ({ iconName, className = "h-5 w-5" }) => {
     'activity': Activity,
     'save': Save,
     'download': Download,
-    'windows': Windows,
+    'windows': Laptop, // Changed from Windows to Laptop
     'ban': AlertCircle,
   };
 
