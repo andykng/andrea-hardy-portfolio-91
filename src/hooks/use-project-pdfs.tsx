@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { ProjectPDF, ProjectsConfig } from '@/types/project-pdf';
@@ -214,7 +213,15 @@ export const useProjectPDFs = () => {
       setProjects(allProjects);
       
       // Sauvegarder la configuration dans Supabase
-      await saveProjectsConfig(allProjects);
+      const success = await saveProjectsConfig(allProjects);
+      if (success) {
+        console.log('Configuration générée et sauvegardée avec succès!');
+        toast({
+          title: 'Succès',
+          description: 'La liste des documentations PDF a été générée avec succès',
+          variant: 'default',
+        });
+      }
       
     } catch (error) {
       console.error('Erreur lors de la génération de la configuration:', error);
@@ -266,13 +273,10 @@ export const useProjectPDFs = () => {
           description: 'Impossible de sauvegarder la configuration des projets',
           variant: 'destructive',
         });
+        return false;
       } else {
         console.log('Configuration des projets sauvegardée avec succès');
-        toast({
-          title: 'Succès',
-          description: 'Configuration des projets sauvegardée',
-          variant: 'default',
-        });
+        return true;
       }
     } catch (error) {
       console.error('Erreur dans saveProjectsConfig:', error);
@@ -281,6 +285,7 @@ export const useProjectPDFs = () => {
         description: 'Une erreur est survenue lors de la sauvegarde',
         variant: 'destructive',
       });
+      return false;
     }
   };
 
