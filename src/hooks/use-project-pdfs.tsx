@@ -1,10 +1,7 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from "@/integrations/supabase/client";
-import { ProjectPDF, ProjectsConfig } from '@/types/project-pdf';
-import { useRealtimeSubscription } from './use-realtime-subscription';
+import { ProjectPDF } from '@/types/project-pdf';
 import { useToast } from '@/components/ui/use-toast';
-import { Json } from '@/integrations/supabase/types';
 
 // Listes des fichiers dans les répertoires
 const year1Files = [
@@ -177,6 +174,34 @@ export const useProjectPDFs = () => {
     }
   };
 
+  // Fonction pour sauvegarder les modifications de projet
+  const updateProject = (updatedProject: ProjectPDF): boolean => {
+    try {
+      // Chercher l'index du projet à mettre à jour
+      const projectIndex = projects.findIndex(p => p.id === updatedProject.id);
+      
+      // Si le projet existe, le mettre à jour
+      if (projectIndex !== -1) {
+        const updatedProjects = [...projects];
+        updatedProjects[projectIndex] = updatedProject;
+        setProjects(updatedProjects);
+        
+        toast({
+          title: 'Succès',
+          description: 'Le projet a été mis à jour avec succès',
+        });
+        
+        return true;
+      } else {
+        console.error('Projet non trouvé:', updatedProject.id);
+        return false;
+      }
+    } catch (err) {
+      console.error('Erreur lors de la mise à jour du projet:', err);
+      return false;
+    }
+  };
+
   // Charger les projets au montage du composant
   useEffect(() => {
     loadProjects();
@@ -186,6 +211,7 @@ export const useProjectPDFs = () => {
     projects,
     loading,
     error,
-    loadProjects
+    loadProjects,
+    updateProject
   };
 };

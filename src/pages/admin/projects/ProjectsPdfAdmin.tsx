@@ -30,7 +30,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
 export default function ProjectsPdfAdmin() {
-  const { projects, loading, loadProjects, saveProjectsConfig, updateProject } = useProjectPDFs();
+  const { projects, loading, loadProjects, updateProject } = useProjectPDFs();
   const { toast } = useToast();
   const [year1Projects, setYear1Projects] = useState<ProjectPDF[]>([]);
   const [year2Projects, setYear2Projects] = useState<ProjectPDF[]>([]);
@@ -81,7 +81,7 @@ export default function ProjectsPdfAdmin() {
     setSaving(true);
     
     try {
-      const success = await updateProject(editingProject);
+      const success = updateProject(editingProject);
       
       if (success) {
         toast({
