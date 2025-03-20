@@ -2,34 +2,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Server, Shield, TerminalSquare, User, Router, GanttChart } from "lucide-react";
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { fadeInOnScroll } from "@/lib/animations";
 import { useEffect } from "react";
+import { TechGrid } from "./TechGrid";
 
-// Tech logos with their URLs
-const techLogos = [
-  { name: "ProFTPD", url: "https://res.cloudinary.com/drbfimvy9/image/upload/v1742487801/proftpd_zncgtu.png" },
-  { name: "HTTPS", url: "https://res.cloudinary.com/drbfimvy9/image/upload/v1742487800/https_lkuelr.png" },
-  { name: "Samba", url: "https://res.cloudinary.com/drbfimvy9/image/upload/v1742487800/samba_ttra9z.jpg" },
-  { name: "OPNsense", url: "https://res.cloudinary.com/drbfimvy9/image/upload/v1742487800/opensense_hjm5hj.jpg" },
-  { name: "Fail2ban", url: "https://res.cloudinary.com/drbfimvy9/image/upload/v1742487800/fail2ban_paxiav.png" },
-  { name: "Active Directory", url: "https://res.cloudinary.com/drbfimvy9/image/upload/v1742487800/active_directory_ag6m4u.png" },
-  { name: "Rescuezilla", url: "https://res.cloudinary.com/drbfimvy9/image/upload/v1742487800/rescuezila_qiz7pz.png" },
-  { name: "Proxmox", url: "https://res.cloudinary.com/drbfimvy9/image/upload/v1742487799/proxmox_diep5e.png" },
-  { name: "BackupPC", url: "https://res.cloudinary.com/drbfimvy9/image/upload/v1742487799/backuppc_fhko15.jpg" },
-  { name: "Munin", url: "https://res.cloudinary.com/drbfimvy9/image/upload/v1742487799/munin_umpvcc.jpg" },
-  { name: "Zabbix", url: "https://res.cloudinary.com/drbfimvy9/image/upload/v1742487799/zabbix_oret7o.jpg" },
-  { name: "GPG", url: "https://res.cloudinary.com/drbfimvy9/image/upload/v1742487799/gpg_ts1ixe.png" },
-  { name: "MariaDB", url: "https://res.cloudinary.com/drbfimvy9/image/upload/v1742487799/mariadb_m7dqye.png" },
-  { name: "Packet Tracer", url: "https://res.cloudinary.com/drbfimvy9/image/upload/v1742487799/packet_tracer_ctzfbu.png" },
-  { name: "DHCP", url: "https://res.cloudinary.com/drbfimvy9/image/upload/v1742487799/dhcp_brlhwq.png" },
-  { name: "Netfilter", url: "https://res.cloudinary.com/drbfimvy9/image/upload/v1742487798/netfilter_h1wgyq.png" },
-  { name: "DNS", url: "https://res.cloudinary.com/drbfimvy9/image/upload/v1742487798/dns_zwz6ym.jpg" },
-  { name: "OCS Inventory", url: "https://res.cloudinary.com/drbfimvy9/image/upload/v1742487798/ocs_inventory_pnphau.png" },
-  { name: "SSH", url: "https://res.cloudinary.com/drbfimvy9/image/upload/v1742487798/ssh_j4iu6y.png" },
-];
-
-// Updated skill arrays with logo URLs
+// Skill arrays
 const systemNetworkSkills = [
   {
     name: "Windows Server",
@@ -261,42 +238,6 @@ const softSkills = [
   },
 ];
 
-const LogoBanner = () => {
-  return (
-    <div className="w-full py-8 bg-primary/5 rounded-lg mb-8">
-      <h3 className="text-xl font-semibold text-center mb-6">Technologies maîtrisées</h3>
-      <div className="relative">
-        <Carousel
-          opts={{
-            align: "start",
-            loop: true,
-          }}
-          className="w-full"
-        >
-          <CarouselContent className="px-4">
-            {techLogos.map((logo, index) => (
-              <CarouselItem key={index} className="md:basis-1/4 lg:basis-1/6">
-                <div className="p-2 h-full">
-                  <div className="flex flex-col items-center justify-center space-y-2 bg-white rounded-md shadow-sm p-4 h-32">
-                    <img 
-                      src={logo.url} 
-                      alt={logo.name} 
-                      className="h-16 w-16 object-contain" 
-                    />
-                    <span className="text-xs font-medium text-center">{logo.name}</span>
-                  </div>
-                </div>
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-          <CarouselPrevious className="left-0" />
-          <CarouselNext className="right-0" />
-        </Carousel>
-      </div>
-    </div>
-  );
-};
-
 const SkillCard = ({ skill }) => {
   return (
     <Card className="overflow-hidden transition-all duration-300 hover:shadow-lg h-full">
@@ -330,67 +271,70 @@ export const Skills = () => {
       <div className="container mx-auto px-4">
         <h2 className="text-3xl font-bold text-center mb-8">Mes Compétences</h2>
         
-        <LogoBanner />
+        {/* Ajout du composant TechGrid ici */}
+        <TechGrid />
         
-        <Tabs defaultValue="systemes" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-5 mb-8">
-            <TabsTrigger value="systemes">Systèmes & Réseaux</TabsTrigger>
-            <TabsTrigger value="securite">Sécurité</TabsTrigger>
-            <TabsTrigger value="cloud">Cloud & Virtualisation</TabsTrigger>
-            <TabsTrigger value="support">Support & Projets</TabsTrigger>
-            <TabsTrigger value="savoir-etre">Savoir-être</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="systemes" className="mt-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {systemNetworkSkills.map((skill) => (
-                <div key={skill.name} className="skill-card">
-                  <SkillCard skill={skill} />
-                </div>
-              ))}
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="securite" className="mt-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {securitySkills.map((skill) => (
-                <div key={skill.name} className="skill-card">
-                  <SkillCard skill={skill} />
-                </div>
-              ))}
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="cloud" className="mt-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {cloudSkills.map((skill) => (
-                <div key={skill.name} className="skill-card">
-                  <SkillCard skill={skill} />
-                </div>
-              ))}
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="support" className="mt-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {supportSkills.map((skill) => (
-                <div key={skill.name} className="skill-card">
-                  <SkillCard skill={skill} />
-                </div>
-              ))}
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="savoir-etre" className="mt-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {softSkills.map((skill) => (
-                <div key={skill.name} className="skill-card">
-                  <SkillCard skill={skill} />
-                </div>
-              ))}
-            </div>
-          </TabsContent>
-        </Tabs>
+        <div className="mt-16">
+          <Tabs defaultValue="systemes" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 md:grid-cols-5 mb-8">
+              <TabsTrigger value="systemes">Systèmes & Réseaux</TabsTrigger>
+              <TabsTrigger value="securite">Sécurité</TabsTrigger>
+              <TabsTrigger value="cloud">Cloud & Virtualisation</TabsTrigger>
+              <TabsTrigger value="support">Support & Projets</TabsTrigger>
+              <TabsTrigger value="savoir-etre">Savoir-être</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="systemes" className="mt-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {systemNetworkSkills.map((skill) => (
+                  <div key={skill.name} className="skill-card">
+                    <SkillCard skill={skill} />
+                  </div>
+                ))}
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="securite" className="mt-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {securitySkills.map((skill) => (
+                  <div key={skill.name} className="skill-card">
+                    <SkillCard skill={skill} />
+                  </div>
+                ))}
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="cloud" className="mt-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {cloudSkills.map((skill) => (
+                  <div key={skill.name} className="skill-card">
+                    <SkillCard skill={skill} />
+                  </div>
+                ))}
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="support" className="mt-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {supportSkills.map((skill) => (
+                  <div key={skill.name} className="skill-card">
+                    <SkillCard skill={skill} />
+                  </div>
+                ))}
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="savoir-etre" className="mt-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {softSkills.map((skill) => (
+                  <div key={skill.name} className="skill-card">
+                    <SkillCard skill={skill} />
+                  </div>
+                ))}
+              </div>
+            </TabsContent>
+          </Tabs>
+        </div>
       </div>
     </section>
   );
